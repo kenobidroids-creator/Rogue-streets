@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Street Jack: Roguelike</title>
+    <style>
+        :root {
+            --bg: #111; --screen-bg: #1a1a1a; --text: #eee;
+            --cell-size: 32px; --accent: #d32f2f;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0; padding: 0; background-color: var(--bg); color: var(--text);
+            font-family: 'Courier New', Courier, monospace;
+            height: 100vh; display: flex; justify-content: center; align-items: center;
+            user-select: none; -webkit-user-select: none;
+        }
+
+        #mobile-frame {
+            width: 100%; max-width: 400px; height: 100vh; max-height: 800px;
+            background-color: var(--screen-bg); position: relative;
+            display: flex; flex-direction: column;
+            border: 4px solid #333; border-radius: 12px; overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.9);
+        }
+
+        /* --- TOP HUD --- */
+        #top-hud {
+            padding: 10px 15px; background: #222; border-bottom: 2px solid #444;
+            display: flex; flex-direction: column; gap: 5px; z-index: 5;
+        }
+        .header-stats { display: flex; justify-content: space-between; align-items: flex-start; font-weight: bold; font-size: 1.1rem; }
+        .hp-bar { color: var(--accent); text-align: right; }
+        #perks-bar { font-size: 1rem; color: #aaa; min-height: 20px; text-align: right; letter-spacing: 2px;}
+        
+        #enemy-score-board {
+            text-align: center; font-size: 1.2rem; font-weight: bold; color: #ff9800;
+            background: #111; border: 2px solid #333; border-radius: 6px; padding: 5px;
+        }
+
+        /* --- MID AREA (Map) --- */
+        #mid-area {
+            flex: 1; display: flex; flex-direction: column;
+            justify-content: center; align-items: center; position: relative;
+            background: #151515; overflow: hidden;
+        }
+
+        #log {
+            position: absolute; top: 10px; text-align: center;
+            color: #4caf50; font-size: 0.85rem; font-weight: bold;
+            text-shadow: 1px 1px 0 #000; width: 100%; padding: 0 10px; z-index: 2;
+        }
+
+        #map-container {
+            position: relative; width: 320px; height: 320px; 
+            border: 2px solid #444; box-shadow: 0 0 15px rgba(0,0,0,0.8); background-color: #000;
+        }
+
+        #map-view {
+            display: grid; width: 320px; height: 320px;
+            grid-template-columns: repeat(10, var(--cell-size));
+            grid-template-rows: repeat(10, var(--cell-size));
+        }
+
+        .cell { width: var(--cell-size); height: var(--cell-size); background-size: cover; image-rendering: pixelated; position: relative; }
+        .sprite { width: 100%; height: 100%; background-size: cover; image-rendering: pixelated; position: absolute; top: 0; left: 0; }
+
+        /* --- HIGH QUALITY 16-BIT SVG SPRITES (Encoded safely) --- */
+        .floor { background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" shape-rendering="crispEdges"><rect width="16" height="16" fill="%231a1a1a"/><path fill="%23111" d="M2,2 h2 v2 h-2 z M10,12 h2 v2 h-2 z M14,4 h1 v1 h-1 z M4,10 h1 v1 h-1 z"/><path fill="%23222" d="M12,2 h2 v2 h-2 z M2,12 h2 v2 h-2 z M6,6 h4 v4 h-4 z"/><path fill="%232a2a2a" d="M7,7 h2 v2 h-2 z"/></svg>'); }
+        .wall { background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" shape-rendering="crispEdges"><rect width="16" height="16" fill="%234a2e2b"/><path fill="%232c1c1a" d="M0,3 h16 v1 h-16 z M0,7 h16 v1 h-16 z M0,11 h16 v1 h-16 z M0,15 h16 v1 h-16 z M4,0 v3 h1 v-3 z M12,0 v3 h1 v-3 z M8,4 v3 h1 v-3 z M16,4 v3 h1 v-3 z M4,8 v3 h1 v-3 z M12,8 v3 h1 v-3 z M8,12 v3 h1 v-3 z"/><path fill="%235c3a36" d="M0,0 h4 v1 h-4 z M5,0 h7 v1 h-7 z M13,0 h3 v1 h-3 z M0,4 h8 v1 h-8 z M9,4 h7 v1 h-7 z M0,8 h4 v1 h-4 z M5,8 h7 v1 h-7 z M13,8 h3 v1 h-3 z M0,12 h8 v1 h-8 z M9,12 h7 v1 h-7 z"/></svg>'); }
+        
+        /* Player: Mysterious Businessman (Fedora, Shades, Suit, Briefcase) */
+        .sprite.player { z-index: 3; background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxNiAxNiIgc2hhcGUtcmVuZGVyaW5nPSJjcmlzcEVkZ2VzIj48ZWxsaXBzZSBjeD0iOCIgY3k9IjE1IiByeD0iNSIgcnk9IjIiIGZpbGw9InJnYmEoMCwwLDAsMC40KSIvPjxyZWN0IHg9IjUiIHk9IjEiIHdpZHRoPSI2IiBoZWlnaHQ9IjIiIGZpbGw9IiMyMjIiLz48cmVjdCB4PSI1IiB5PSIyIiB3aWR0aD0iNiIgaGVpZ2h0PSIxIiBmaWxsPSIjZDMyZjJmIi8+PHJlY3QgeD0iNCIgeT0iMyIgd2lkdGg9IjgiIGhlaWdodD0iMSIgZmlsbD0iIzExMSIvPjxyZWN0IHg9IjYiIHk9IjQiIHdpZHRoPSI0IiBoZWlnaHQ9IjMiIGZpbGw9IiNmNGMyOWYiLz48cmVjdCB4PSI2IiB5PSI0IiB3aWR0aD0iNCIgaGVpZ2h0PSIxIiBmaWxsPSIjMDAwIi8+PHJlY3QgeD0iMTAiIHk9IjQiIHdpZHRoPSIxIiBoZWlnaHQ9IjEiIGZpbGw9IiMxMTEiLz48cmVjdCB4PSI1IiB5PSI3IiB3aWR0aD0iNiIgaGVpZ2h0PSI1IiBmaWxsPSIjMmMzZTUwIi8+PHJlY3QgeD0iNyIgeT0iNyIgd2lkdGg9IjIiIGhlaWdodD0iMiIgZmlsbD0iI2ZmZiIvPjxyZWN0IHg9IjciIHk9IjciIHdpZHRoPSIxIiBoZWlnaHQ9IjQiIGZpbGw9IiNjMDM5MmIiLz48cmVjdCB4PSI0IiB5PSI3IiB3aWR0aD0iMSIgaGVpZ2h0PSI0IiBmaWxsPSIjMmMzZTUwIi8+PHJlY3QgeD0iMTEiIHk9IjciIHdpZHRoPSIxIiBoZWlnaHQ9IjMiIGZpbGw9IiMyYzNlNTAiLz48cmVjdCB4PSI0IiB5PSIxMSIgd2lkdGg9IjEiIGhlaWdodD0iMSIgZmlsbD0iI2Y0YzI5ZiIvPjxyZWN0IHg9IjExIiB5PSIxMCIgd2lkdGg9IjEiIGhlaWdodD0iMSIgZmlsbD0iI2Y0YzI5ZiIvPjxyZWN0IHg9IjExIiB5PSIxMSIgd2lkdGg9IjQiIGhlaWdodD0iMyIgZmlsbD0iIzZlMmMwMCIvPjxyZWN0IHg9IjEyIiB5PSIxMCIgd2lkdGg9IjIiIGhlaWdodD0iMSIgZmlsbD0iIzMzMyIvPjxyZWN0IHg9IjYiIHk9IjEyIiB3aWR0aD0iNCIgaGVpZ2h0PSIyIiBmaWxsPSIjMWEyNTJmIi8+PHJlY3QgeD0iNSIgeT0iMTQiIHdpZHRoPSIyIiBoZWlnaHQ9IjEiIGZpbGw9IiMxMTEiLz48cmVjdCB4PSI5IiB5PSIxNCIgd2lkdGg9IjIiIGhlaWdodD0iMSIgZmlsbD0iIzExMSIvPjwvc3ZnPg=='); }
+        
+        /* Enemy: Thug w/ Mohawk & Orange Vest */
+        .sprite.enemy { z-index: 2; background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" shape-rendering="crispEdges"><ellipse cx="8" cy="15" rx="6" ry="2" fill="rgba(0,0,0,0.4)"/><path fill="%23111" d="M6,0 h4 v1 h1 v1 h2 v3 h1 v4 h-1 v2 h-1 v3 h1 v2 h-10 v-2 h1 v-3 h-1 v-2 h-1 v-4 h1 v-3 h2 v-1 h1 v-1 z"/><path fill="%232ecc71" d="M7,0 h2 v3 h-2 z M6,1 h4 v2 h-4 z"/><path fill="%23dcb38c" d="M6,3 h4 v4 h-4 z M3,9 h1 v2 h-1 z M12,9 h1 v2 h-1 z M5,4 h1 v3 h-1 z M10,4 h1 v3 h-1 z"/><path fill="%23111" d="M5,4 h6 v2 h-6 z"/><path fill="%23f39c12" d="M6,4 h1 v1 h-1 z M9,4 h1 v1 h-1 z"/><path fill="%23e67e22" d="M5,8 h6 v4 h-6 z M4,8 h1 v1 h-1 z M11,8 h1 v1 h-1 z"/><path fill="%23dcb38c" d="M7,8 h2 v3 h-2 z"/><path fill="%23111" d="M7,11 h2 v1 h-2 z"/><path fill="%234d5656" d="M5,12 h6 v3 h-6 z"/><path fill="%23111" d="M7,12 h2 v3 h-2 z"/><path fill="%237f8c8d" d="M4,13 h2 v3 h-2 z M10,13 h2 v3 h-2 z"/></svg>'); }
+        
+        /* Loot Crate */
+        .sprite.loot { z-index: 1; background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" shape-rendering="crispEdges"><ellipse cx="8" cy="14" rx="7" ry="2" fill="rgba(0,0,0,0.4)"/><path fill="%23111" d="M2,6 h12 v7 h-12 z M3,5 h10 v1 h-10 z"/><path fill="%23f1c40f" d="M3,7 h10 v5 h-10 z"/><path fill="%23d35400" d="M3,11 h10 v1 h-10 z M3,7 h10 v1 h-10 z M5,8 h2 v3 h-2 z M9,8 h2 v3 h-2 z"/><path fill="%23fff" d="M3,7 h10 v1 h-10 z"/><path fill="%23111" d="M7,8 h2 v2 h-2 z"/></svg>'); }
+        
+        /* Stairs / Manhole */
+        .sprite.stairs { z-index: 0; background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" shape-rendering="crispEdges"><ellipse cx="8" cy="10" rx="7" ry="4" fill="%23111"/><ellipse cx="8" cy="10" rx="6" ry="3" fill="%232c3e50"/><path fill="%23111" d="M6,8 h4 v5 h-4 z"/><path fill="%237f8c8d" d="M7,8 h2 v1 h-2 z M7,10 h2 v1 h-2 z M7,12 h2 v1 h-2 z"/><path fill="%2395a5a6" d="M6,8 h1 v5 h-1 z M9,8 h1 v5 h-1 z"/><ellipse cx="8" cy="5" rx="6" ry="3" fill="%2334495e"/><ellipse cx="8" cy="4" rx="6" ry="3" fill="%237f8c8d"/><path fill="%232c3e50" d="M4,4 h8 v1 h-8 z M6,3 h4 v1 h-4 z M6,5 h4 v1 h-4 z"/></svg>'); }
+
+        /* Smooth Breathing Idle Animation */
+        .anim-idle { animation: idleBounce 1.2s infinite ease-in-out alternate; }
+        @keyframes idleBounce {
+            0%   { transform: translateY(0px); }
+            100% { transform: translateY(-3px); }
+        }
+
+        /* Floating Mini Cards */
+        .floating-container {
+            position: absolute; display: flex; gap: 4px; transition: all 0.2s ease;
+            z-index: 10; pointer-events: none; background: rgba(0,0,0,0.85); padding: 4px;
+            border-radius: 6px; border: 1px solid #555; box-shadow: 0 4px 6px rgba(0,0,0,0.6);
+            transform: translateX(-25%);
+        }
+        .mini-card {
+            background: #fff; color: #000; width: 20px; height: 30px; border-radius: 3px;
+            display: flex; justify-content: center; align-items: center;
+            font-weight: bold; font-size: 0.7rem; border: 1px solid #555;
+        }
+
+        /* --- BOTTOM HUD --- */
+        #bottom-hud {
+            height: 260px; background: #222; border-top: 2px solid #444; padding: 15px;
+            display: flex; flex-direction: column; align-items: center; justify-content: flex-end; z-index: 5;
+        }
+
+        #player-ui { width: 100%; height: 140px; position: relative; margin-bottom: 20px; }
+        .card-fan-container { position: relative; width: 100%; height: 100%; cursor: pointer; }
+        
+        .big-card {
+            position: absolute; top: 0; left: 50%; margin-left: -45px; 
+            width: 90px; height: 130px; background: #fff; color: #000;
+            border-radius: 8px; display: block; border: 2px solid #ccc;
+            box-shadow: -3px 3px 10px rgba(0,0,0,0.6); transform-origin: bottom center;
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .card-red { color: var(--accent); }
+        .card-hidden { background: #555; color: transparent; border-color: #333; }
+
+        .card-corner { position: absolute; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 1.1rem; line-height: 1; font-weight: bold; }
+        .top-left { top: 6px; left: 6px; }
+        .bottom-right { bottom: 6px; right: 6px; transform: rotate(180deg); }
+        .card-center { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 3rem; opacity: 0.3; }
+
+        #score-banner {
+            position: absolute; bottom: -5px; left: 50%; transform: translateX(-50%);
+            background: #ddd; color: #000; border: 3px solid #111; padding: 4px 20px;
+            font-size: 1.2rem; font-weight: bold; border-radius: 4px; z-index: 20;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.5); display: flex; gap: 8px; align-items: center; pointer-events: none; 
+        }
+
+        #dpad { display: grid; grid-template-columns: 55px 55px 55px; grid-template-rows: 55px 55px; gap: 5px; justify-content: center; width: 100%; }
+        #dpad .up { grid-column: 2; grid-row: 1; } #dpad .left { grid-column: 1; grid-row: 2; }
+        #dpad .down { grid-column: 2; grid-row: 2; } #dpad .right { grid-column: 3; grid-row: 2; }
+
+        .control-btns { display: flex; gap: 15px; width: 100%; justify-content: center; }
+        button {
+            font-family: 'Courier New', Courier, monospace; font-weight: bold; font-size: 1.1rem;
+            padding: 14px; background: #333; color: #fff; border: 2px solid #777; border-radius: 8px; cursor: pointer;
+        }
+        button:active { background: #fff; color: #000; border-color:#fff; }
+        #dpad button { padding: 0; font-size: 1.5rem; border-radius: 50%; height: 55px; display:flex; align-items:center; justify-content:center;}
+        .hidden { display: none !important; }
+
+        /* --- MENUS & OVERLAYS --- */
+        .overlay-screen {
+            position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.95); display: flex; flex-direction: column;
+            justify-content: center; align-items: center; z-index: 50; text-align: center; gap: 15px;
+        }
+        .title { color: var(--accent); font-size: 2.5rem; margin-bottom: 20px; text-shadow: 2px 2px #000; }
+        .menu-btn { width: 80%; padding: 15px; font-size: 1.2rem; background: #222; }
+
+    </style>
+</head>
+<body>
+
+<div id="mobile-frame">
+
+    <div id="top-hud">
+        <div class="header-stats">
+            <div>
+                St: <span id="floor-num">1</span> <br>
+                <span id="mode-label" style="font-size: 0.9rem; color: #aaa;"></span>
+            </div>
+            <div>
+                HP:<br>
+                <span id="player-hp" class="hp-bar">♥♥♥♥♥</span>
+            </div>
+        </div>
+        <div id="perks-bar"></div>
+        <div id="enemy-score-board" class="hidden">Thug Score: <span id="big-enemy-score">0</span></div>
+    </div>
+
+    <div id="mid-area">
+        <div id="log">Welcome to the Streets.</div>
+        <div id="map-container">
+            <div id="map-view"></div>
+            <div id="mini-enemy-cards" class="floating-container hidden"></div>
+            <div id="mini-player-cards" class="floating-container hidden"></div>
+        </div>
+    </div>
+
+    <div id="bottom-hud">
+        <div id="player-ui" class="hidden">
+            <div id="card-fan" class="card-fan-container"></div>
+            <div id="score-banner"><span>🂠</span> <span id="big-player-score">0</span></div>
+        </div>
+
+        <div id="dpad">
+            <button class="up" id="btn-up">▲</button>
+            <button class="left" id="btn-left">◀</button>
+            <button class="down" id="btn-down">▼</button>
+            <button class="right" id="btn-right">▶</button>
+        </div>
+
+        <div id="battle-actions" class="control-btns hidden">
+            <button id="btn-hit" style="flex:1;">HIT</button>
+            <button id="btn-stand" style="flex:1;">STAND</button>
+        </div>
+        
+        <div id="battle-continue" class="control-btns hidden">
+            <button id="btn-next-hand" style="flex:1; background:#4caf50;">Next Hand</button>
+        </div>
+    </div>
+
+    <div id="main-menu" class="overlay-screen">
+        <h1 class="title">STREET JACK</h1>
+        <button id="btn-resume" class="menu-btn hidden" style="background: #4caf50;">Resume Run</button>
+        <button id="btn-new-run" class="menu-btn">Structured Run (10 St)</button>
+        <button id="btn-endless" class="menu-btn">Endless Run</button>
+    </div>
+
+    <div id="end-screen" class="overlay-screen hidden">
+        <h2 id="end-title" class="title">Game Over</h2>
+        <p id="end-desc" style="font-size: 1.2rem; margin-bottom: 20px;">You got beaten up.</p>
+        <button onclick="location.reload()" class="menu-btn">Return to Menu</button>
+    </div>
+
+</div>
+
+<script>
+    /* --- CONFIG & STATE --- */
+    const GRID_SIZE = 10;
+    const CELL_SIZE = 32; 
+    
+    let gameState = 'MENU'; 
+    let gameMode = 'structured'; 
+    let currentFloor = 1;
+    let player = { x: 1, y: 1, hp: 5, maxHp: 5, perks: [] };
+    let map = [];
+    let enemies = [];
+    let loot = [];
+    let stairs = null;
+    let currentEnemy = null;
+    let kevlarActive = false; 
+
+    /* --- BLACKJACK STATE --- */
+    let deck = [], playerHand = [], enemyHand = [], enemyHidden = true;
+    let cardsAreStraight = false, straightTimeout = null;
+
+    /* --- DOM --- */
+    const elMapView = document.getElementById('map-view');
+    const elPlayerHp = document.getElementById('player-hp');
+    const elFloorNum = document.getElementById('floor-num');
+    const elModeLabel = document.getElementById('mode-label');
+    const elPerksBar = document.getElementById('perks-bar');
+    const elLog = document.getElementById('log');
+
+    const enemyScoreBoard = document.getElementById('enemy-score-board');
+    const bigEnemyScore = document.getElementById('big-enemy-score');
+    const playerUI = document.getElementById('player-ui');
+    const cardFan = document.getElementById('card-fan');
+    const bigPlayerScore = document.getElementById('big-player-score');
+    const miniEnemyCards = document.getElementById('mini-enemy-cards');
+    const miniPlayerCards = document.getElementById('mini-player-cards');
+    const dpad = document.getElementById('dpad');
+    const battleActions = document.getElementById('battle-actions');
+    const battleContinue = document.getElementById('battle-continue');
+
+    function logMsg(msg) { elLog.innerText = msg; }
+
+    /* --- SAVE / LOAD SYSTEM --- */
+    function saveGame() {
+        if (gameState !== 'MAP') return; 
+        const saveObj = { gameMode, currentFloor, player, map, enemies, loot, stairs };
+        localStorage.setItem('streetjack_save', JSON.stringify(saveObj));
+    }
+
+    function loadGame() {
+        const saved = localStorage.getItem('streetjack_save');
+        if (saved) {
+            const data = JSON.parse(saved);
+            gameMode = data.gameMode;
+            currentFloor = data.currentFloor;
+            player = data.player;
+            map = data.map;
+            enemies = data.enemies;
+            loot = data.loot || [];
+            stairs = data.stairs;
+            return true;
+        }
+        return false;
+    }
+    function clearSave() { localStorage.removeItem('streetjack_save'); }
+
+    /* --- MENU LOGIC --- */
+    if (localStorage.getItem('streetjack_save')) document.getElementById('btn-resume').classList.remove('hidden');
+
+    document.getElementById('btn-resume').onclick = () => { if (loadGame()) startGameFlow(); };
+    document.getElementById('btn-new-run').onclick = () => { gameMode = 'structured'; clearSave(); initNewGame(); startGameFlow(); };
+    document.getElementById('btn-endless').onclick = () => { gameMode = 'endless'; clearSave(); initNewGame(); startGameFlow(); };
+
+    function initNewGame() {
+        currentFloor = 1;
+        player = { x: 1, y: 1, hp: 5, maxHp: 5, perks: [] };
+        generateFloor();
+    }
+
+    function startGameFlow() {
+        document.getElementById('main-menu').classList.add('hidden');
+        gameState = 'MAP';
+        drawMap();
+        updateHeader();
+        saveGame();
+    }
+
+    /* --- PERKS SYSTEM --- */
+    const PERK_DB = {
+        'brass_knuckles': { icon: '🥊', name: 'Brass Knuckles (+1 Dmg)' },
+        'kevlar': { icon: '🛡️', name: 'Kevlar Vest (Block 1st Hit)' },
+        'xray_specs': { icon: '👓', name: 'X-Ray Specs (See Cards)' },
+        'vampire': { icon: '🦇', name: 'Vampire Fangs (Heal on Kill)' },
+        'first_aid': { icon: '🩹', name: 'First Aid (+2 Max HP)' }
+    };
+
+    function triggerLoot() {
+        let pool = Object.keys(PERK_DB).filter(k => k === 'first_aid' || !player.perks.includes(k));
+        if(pool.length === 0) pool = ['first_aid']; 
+        let chosen = pool[Math.floor(Math.random() * pool.length)];
+        
+        if (chosen === 'first_aid') { player.maxHp += 2; player.hp = player.maxHp; } 
+        else { player.perks.push(chosen); }
+        
+        logMsg(`Loot Found: ${PERK_DB[chosen].name}!`);
+        updateHeader();
+        saveGame();
+    }
+
+    /* --- MAP LOGIC W/ FLOOD FILL PATHFINDING --- */
+    function generateFloor() {
+        let validMap = false;
+        let emptyCells = [];
+        
+        // Loop map generation until we get a fully connected path (Flood-Fill algorithm)
+        while (!validMap) {
+            map = [];
+            for (let y = 0; y < GRID_SIZE; y++) {
+                let row = [];
+                for (let x = 0; x < GRID_SIZE; x++) {
+                    if (x === 0 || x === GRID_SIZE - 1 || y === 0 || y === GRID_SIZE - 1) row.push(1);
+                    else row.push(0);
+                }
+                map.push(row);
+            }
+            
+            // Randomly generate 8 walls
+            for(let i = 0; i < 8; i++) {
+                let wx = Math.floor(Math.random() * (GRID_SIZE - 2)) + 1;
+                let wy = Math.floor(Math.random() * (GRID_SIZE - 2)) + 1;
+                if(wx !== 1 || wy !== 1) map[wy][wx] = 1; 
+            }
+
+            // Verify connectivity using Breadth-First Search (BFS) Flood Fill
+            let totalEmpty = 0;
+            emptyCells = [];
+            for (let y = 1; y < GRID_SIZE - 1; y++) {
+                for (let x = 1; x < GRID_SIZE - 1; x++) {
+                    if (map[y][x] === 0) {
+                        totalEmpty++;
+                        if (!(x === 1 && y === 1)) emptyCells.push({x, y});
+                    }
+                }
+            }
+
+            let visited = new Set();
+            let queue = [{x: 1, y: 1}];
+            visited.add('1,1');
+            let reachable = 1;
+
+            while(queue.length > 0) {
+                let curr = queue.shift();
+                let dirs = [[0,-1], [0,1], [-1,0], [1,0]];
+                for(let d of dirs) {
+                    let nx = curr.x + d[0];
+                    let ny = curr.y + d[1];
+                    let key = nx + "," + ny;
+                    if(map[ny][nx] === 0 && !visited.has(key)) {
+                        visited.add(key);
+                        queue.push({x: nx, y: ny});
+                        reachable++;
+                    }
+                }
+            }
+
+            // If we can reach every empty tile from the spawn, the map is perfectly valid!
+            if (reachable === totalEmpty) validMap = true;
+        }
+
+        player.x = 1; player.y = 1;
+        enemies = []; loot = []; stairs = null;
+
+        // Shuffle empty cells for random spawns
+        for (let i = emptyCells.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [emptyCells[i], emptyCells[j]] = [emptyCells[j], emptyCells[i]];
+        }
+        
+        let enemyCount = currentFloor === 1 ? 2 : 3;
+        let thugHp = 1 + Math.floor((currentFloor - 1) / 3); 
+        for(let i = 0; i < enemyCount; i++) {
+            let cell = emptyCells.pop();
+            if(cell) enemies.push({ x: cell.x, y: cell.y, hp: thugHp, maxHp: thugHp, active: true });
+        }
+
+        let lootCell = emptyCells.pop();
+        if(lootCell) loot.push({ x: lootCell.x, y: lootCell.y, active: true });
+    }
+
+    function drawMap() {
+        elMapView.innerHTML = '';
+        for (let y = 0; y < GRID_SIZE; y++) {
+            for (let x = 0; x < GRID_SIZE; x++) {
+                // Environment Base Layer
+                let cell = document.createElement('div');
+                cell.className = map[y][x] === 1 ? 'cell wall' : 'cell floor';
+                
+                // Dynamic Entity Overlay Layer (Animated)
+                let spriteClass = null;
+                if (player.x === x && player.y === y) spriteClass = 'player';
+                else if (stairs && stairs.x === x && stairs.y === y) spriteClass = 'stairs';
+                else {
+                    let enemy = enemies.find(e => e.active && e.x === x && e.y === y);
+                    let crate = loot.find(l => l.active && l.x === x && l.y === y);
+                    if (enemy) spriteClass = 'enemy';
+                    else if (crate) spriteClass = 'loot';
+                }
+
+                if (spriteClass) {
+                    let sprite = document.createElement('div');
+                    sprite.className = `sprite ${spriteClass}`;
+                    if (spriteClass === 'player' || spriteClass === 'enemy') sprite.classList.add('anim-idle');
+                    cell.appendChild(sprite);
+                }
+                elMapView.appendChild(cell);
+            }
+        }
+        if (gameState === 'BATTLE') positionMiniCards();
+    }
+
+    function updateHeader() {
+        // Handle gracefully if HP goes sky high
+        let hpStr = '';
+        if (player.maxHp <= 10) {
+            hpStr = '♥'.repeat(Math.max(0, player.hp)) + '♡'.repeat(Math.max(0, player.maxHp - player.hp));
+        } else {
+            hpStr = `♥ ${player.hp} / ${player.maxHp}`;
+        }
+        
+        elPlayerHp.innerText = player.hp > 0 ? hpStr : '💀';
+        elFloorNum.innerText = currentFloor;
+        elModeLabel.innerText = gameMode === 'endless' ? '(Endless)' : '/10';
+        elPerksBar.innerText = player.perks.map(p => PERK_DB[p].icon).join(' ');
+    }
+
+    /* --- TURN-BASED COMBAT & AI MOVEMENT --- */
+    function movePlayer(dx, dy) {
+        if (gameState !== 'MAP') return;
+        let nx = player.x + dx, ny = player.y + dy;
+        
+        if (map[ny][nx] === 1) return; 
+        
+        let enemy = enemies.find(en => en.active && en.x === nx && en.y === ny);
+        if (enemy) { startBattle(enemy); return; }
+
+        let crate = loot.find(l => l.active && l.x === nx && l.y === ny);
+        if (crate) { crate.active = false; triggerLoot(); }
+
+        if (stairs && nx === stairs.x && ny === stairs.y) { nextFloor(); return; }
+
+        player.x = nx; player.y = ny;
+        
+        let battleInitiated = moveEnemies();
+        
+        drawMap();
+        if (!battleInitiated) saveGame(); 
+    }
+
+    function moveEnemies() {
+        let battleStarted = false;
+        for (let enemy of enemies) {
+            if (!enemy.active) continue;
+            
+            if (Math.random() < 0.4) continue; 
+
+            let nx = enemy.x, ny = enemy.y;
+
+            if (Math.random() < 0.6) {
+                let dx = player.x - enemy.x, dy = player.y - enemy.y;
+                if (Math.abs(dx) > Math.abs(dy)) nx += Math.sign(dx);
+                else if (Math.abs(dy) > Math.abs(dx)) ny += Math.sign(dy);
+                else {
+                    if (Math.random() < 0.5) nx += Math.sign(dx);
+                    else ny += Math.sign(dy);
+                }
+            } else {
+                let dirs = [[0,-1], [0,1], [-1,0], [1,0]];
+                let r = dirs[Math.floor(Math.random()*4)];
+                nx += r[0]; ny += r[1];
+            }
+
+            if (map[ny][nx] === 1) continue; 
+            if (stairs && stairs.x === nx && stairs.y === ny) continue; 
+            if (loot.some(l => l.active && l.x === nx && l.y === ny)) continue; 
+            if (enemies.some(e => e.active && e.x === nx && e.y === ny)) continue; 
+
+            if (nx === player.x && ny === player.y) {
+                startBattle(enemy);
+                battleStarted = true;
+                break; 
+            }
+            enemy.x = nx; enemy.y = ny;
+        }
+        return battleStarted;
+    }
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowUp' || e.key === 'w') movePlayer(0, -1);
+        else if (e.key === 'ArrowDown' || e.key === 's') movePlayer(0, 1);
+        else if (e.key === 'ArrowLeft' || e.key === 'a') movePlayer(-1, 0);
+        else if (e.key === 'ArrowRight' || e.key === 'd') movePlayer(1, 0);
+    });
+    document.getElementById('btn-up').onclick = () => movePlayer(0, -1);
+    document.getElementById('btn-down').onclick = () => movePlayer(0, 1);
+    document.getElementById('btn-left').onclick = () => movePlayer(-1, 0);
+    document.getElementById('btn-right').onclick = () => movePlayer(1, 0);
+
+    function checkRoomClear() {
+        if (enemies.every(e => !e.active) && !stairs) {
+            logMsg("Street cleared! Find the manhole.");
+            let emptyCells = [];
+            for (let y = 1; y < GRID_SIZE - 1; y++) {
+                for (let x = 1; x < GRID_SIZE - 1; x++) {
+                    if (map[y][x] === 0 && !(x === player.x && y === player.y)) emptyCells.push({x, y});
+                }
+            }
+            stairs = emptyCells[Math.floor(Math.random() * emptyCells.length)];
+            drawMap();
+            saveGame();
+        }
+    }
+
+    function nextFloor() {
+        if (gameMode === 'structured' && currentFloor >= 10) {
+            endGame(true);
+        } else {
+            currentFloor++;
+            logMsg(`Entered Street ${currentFloor}.`);
+            generateFloor();
+            drawMap();
+            updateHeader();
+            saveGame();
+        }
+    }
+
+    /* --- BATTLE LOGIC --- */
+    function startBattle(enemy) {
+        gameState = 'BATTLE';
+        currentEnemy = enemy;
+        cardsAreStraight = false;
+        kevlarActive = player.perks.includes('kevlar'); 
+        
+        dpad.classList.add('hidden');
+        enemyScoreBoard.classList.remove('hidden');
+        playerUI.classList.remove('hidden');
+        miniPlayerCards.classList.remove('hidden');
+        miniEnemyCards.classList.remove('hidden');
+        
+        logMsg(`Thug [HP: ${enemy.hp}/${enemy.maxHp}]! Hit or Stand.`);
+        startHand();
+    }
+
+    function positionMiniCards() {
+        let px = player.x * CELL_SIZE, py = player.y * CELL_SIZE;
+        let ex = currentEnemy.x * CELL_SIZE, ey = currentEnemy.y * CELL_SIZE;
+        let pOffsetX = 0, pOffsetY = CELL_SIZE + 4, eOffsetX = 0, eOffsetY = -CELL_SIZE - 12; 
+        if (player.y === currentEnemy.y) {
+            if (player.x < currentEnemy.x) { pOffsetX = -CELL_SIZE; pOffsetY = 0; eOffsetX = CELL_SIZE; eOffsetY = 0; }
+            else { pOffsetX = CELL_SIZE; pOffsetY = 0; eOffsetX = -CELL_SIZE; eOffsetY = 0; }
+        } else if (player.y < currentEnemy.y) {
+            pOffsetY = -CELL_SIZE - 12; eOffsetY = CELL_SIZE + 4;
+        }
+        miniPlayerCards.style.left = px + pOffsetX + 'px';
+        miniPlayerCards.style.top = py + pOffsetY + 'px';
+        miniEnemyCards.style.left = ex + eOffsetX + 'px';
+        miniEnemyCards.style.top = ey + eOffsetY + 'px';
+    }
+
+    function buildDeck() {
+        const suits = ['♠', '♥', '♦', '♣'];
+        const values = ['2','3','4','5','6','7','8','9','10','J','Q','K','A'];
+        deck = [];
+        suits.forEach(suit => values.forEach(val => deck.push({ suit, val, isRed: suit === '♥' || suit === '♦' })));
+        for (let i = deck.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [deck[i], deck[j]] = [deck[j], deck[i]];
+        }
+    }
+
+    function getScore(hand) {
+        let score = 0, aces = 0;
+        for (let c of hand) {
+            if (c.val === 'A') { score += 11; aces += 1; }
+            else if (['J','Q','K'].includes(c.val)) score += 10;
+            else score += parseInt(c.val);
+        }
+        while (score > 21 && aces > 0) { score -= 10; aces -= 1; }
+        return score;
+    }
+
+    function startHand() {
+        battleActions.classList.remove('hidden');
+        battleContinue.classList.add('hidden');
+        cardsAreStraight = false;
+
+        buildDeck();
+        playerHand = [deck.pop(), deck.pop()];
+        enemyHand = [deck.pop(), deck.pop()];
+        enemyHidden = !player.perks.includes('xray_specs');
+
+        renderCards();
+        if (getScore(playerHand) === 21) { logMsg("Blackjack!"); endHand(true); }
+    }
+
+    function renderCards() {
+        bigEnemyScore.innerText = enemyHidden ? `${getScore([enemyHand[0]])} + ?` : getScore(enemyHand);
+        miniPlayerCards.innerHTML = playerHand.map(c => `<div class="mini-card ${c.isRed ? 'card-red' : ''}">${c.val}${c.suit}</div>`).join('');
+        miniEnemyCards.innerHTML = enemyHand.map((c, i) => {
+            if (i === 1 && enemyHidden) return `<div class="mini-card card-hidden">?</div>`;
+            return `<div class="mini-card ${c.isRed ? 'card-red' : ''}">${c.val}${c.suit}</div>`;
+        }).join('');
+        positionMiniCards();
+
+        cardFan.innerHTML = '';
+        playerHand.forEach((c, i) => {
+            let el = document.createElement('div');
+            el.className = `big-card ${c.isRed ? 'card-red' : ''}`;
+            el.innerHTML = `
+                <div class="card-corner top-left"><span>${c.val}</span><span>${c.suit}</span></div>
+                <div class="card-center">${c.suit}</div>
+                <div class="card-corner bottom-right"><span>${c.val}</span><span>${c.suit}</span></div>`;
+            cardFan.appendChild(el);
+        });
+        
+        bigPlayerScore.innerText = getScore(playerHand);
+        applyCardTransforms(); 
+    }
+
+    function applyCardTransforms() {
+        let cards = document.querySelectorAll('.big-card');
+        let spread = cardsAreStraight ? 40 : 20; 
+        let rotAngle = cardsAreStraight ? 0 : 8; 
+        cards.forEach((el, i) => {
+            let offsetX = (i - (cards.length - 1) / 2) * spread;
+            let rot = (i - (cards.length - 1) / 2) * rotAngle;
+            let offsetY = cardsAreStraight ? -15 : 0; 
+            el.style.transform = `translate(${offsetX}px, ${offsetY}px) rotate(${rot}deg)`;
+            el.style.zIndex = i + 1;
+        });
+    }
+
+    cardFan.addEventListener('mouseenter', () => { cardsAreStraight = true; applyCardTransforms(); });
+    cardFan.addEventListener('mouseleave', () => { cardsAreStraight = false; applyCardTransforms(); });
+    cardFan.addEventListener('touchstart', (e) => {
+        e.preventDefault(); cardsAreStraight = true; applyCardTransforms();
+        clearTimeout(straightTimeout);
+        straightTimeout = setTimeout(() => { cardsAreStraight = false; applyCardTransforms(); }, 2000); 
+    });
+
+    document.getElementById('btn-hit').onclick = () => {
+        if (gameState !== 'BATTLE') return;
+        playerHand.push(deck.pop()); cardsAreStraight = false; renderCards();
+        if (getScore(playerHand) > 21) { logMsg("Bust!"); endHand(false); }
+        else if (getScore(playerHand) === 21) endHand(true);
+    };
+
+    document.getElementById('btn-stand').onclick = () => { if (gameState === 'BATTLE') endHand(true); };
+
+    function endHand(dealerPlays) {
+        battleActions.classList.add('hidden');
+        enemyHidden = false; renderCards();
+        if (!dealerPlays) { resolveDamage('PLAYER'); return; }
+
+        let pScore = getScore(playerHand);
+        const dealerHit = setInterval(() => {
+            let eScore = getScore(enemyHand);
+            if (eScore < 17) { enemyHand.push(deck.pop()); renderCards(); } 
+            else {
+                clearInterval(dealerHit);
+                eScore = getScore(enemyHand);
+                if (eScore > 21) { logMsg("Thug busts!"); resolveDamage('ENEMY'); }
+                else if (pScore > eScore) { logMsg("You win hand!"); resolveDamage('ENEMY'); }
+                else if (eScore > pScore) { logMsg("Thug wins hand."); resolveDamage('PLAYER'); }
+                else { logMsg("Push! Dead heat."); checkBattleState(); }
+            }
+        }, 800);
+    }
+
+    function resolveDamage(target) {
+        if (target === 'PLAYER') {
+            if (kevlarActive) { logMsg("Kevlar Blocked Damage!"); kevlarActive = false; } 
+            else { player.hp -= 1; }
+        } else {
+            let dmg = player.perks.includes('brass_knuckles') ? 2 : 1;
+            currentEnemy.hp -= dmg;
+            logMsg(`Dealt ${dmg} damage!`);
+        }
+        updateHeader();
+        checkBattleState();
+    }
+
+    function checkBattleState() {
+        if (player.hp <= 0) { endGame(false); } 
+        else if (currentEnemy.hp <= 0) {
+            logMsg("Thug knocked out!");
+            currentEnemy.active = false;
+            if (player.perks.includes('vampire')) {
+                player.hp = Math.min(player.maxHp, player.hp + 1);
+                updateHeader();
+            }
+            setTimeout(endBattle, 1200);
+        } else {
+            battleContinue.classList.remove('hidden');
+        }
+    }
+
+    document.getElementById('btn-next-hand').onclick = () => {
+        logMsg(`Thug [HP: ${currentEnemy.hp}/${currentEnemy.maxHp}]. Fight!`);
+        startHand();
+    };
+
+    function endBattle() {
+        enemyScoreBoard.classList.add('hidden');
+        playerUI.classList.add('hidden');
+        miniPlayerCards.classList.add('hidden');
+        miniEnemyCards.classList.add('hidden');
+        battleContinue.classList.add('hidden');
+        
+        dpad.classList.remove('hidden');
+        gameState = 'MAP';
+        logMsg("Keep moving.");
+        drawMap();
+        saveGame();
+        checkRoomClear();
+    }
+
+    function endGame(victory) {
+        gameState = victory ? 'WIN' : 'GAMEOVER';
+        clearSave(); 
+        
+        const screen = document.getElementById('end-screen');
+        const title = document.getElementById('end-title');
+        const desc = document.getElementById('end-desc');
+        
+        screen.classList.remove('hidden');
+        if (victory) {
+            title.innerText = "You Survived!";
+            title.style.color = "#4caf50";
+            desc.innerText = "You beat Street 10 and escaped!";
+        } else {
+            title.innerText = "Game Over";
+            title.style.color = "var(--accent)";
+            desc.innerText = `You fell on Street ${currentFloor}.`;
+        }
+    }
+
+</script>
+</body>
+</html>

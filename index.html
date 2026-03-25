@@ -7,7 +7,7 @@
     <style>
         :root {
             --bg: #111; --screen-bg: #1a1a1a; --text: #eee;
-            --cell-size: 32px; --accent: #d32f2f;
+            --cell-size: 32px; --accent: #d32f2f; --gold: #f1c40f;
         }
 
         * { box-sizing: border-box; }
@@ -34,6 +34,7 @@
         }
         .header-stats { display: flex; justify-content: space-between; align-items: flex-start; font-weight: bold; font-size: 1.1rem; }
         .hp-bar { color: var(--accent); text-align: right; }
+        .cash-bar { color: var(--gold); }
         #perks-bar { font-size: 1rem; color: #aaa; min-height: 20px; text-align: right; letter-spacing: 2px;}
         
         #enemy-score-board {
@@ -68,30 +69,24 @@
         .cell { width: var(--cell-size); height: var(--cell-size); background-size: cover; image-rendering: pixelated; position: relative; }
         .sprite { width: 100%; height: 100%; background-size: cover; image-rendering: pixelated; position: absolute; top: 0; left: 0; }
 
-        /* --- HIGH QUALITY 16-BIT SVG SPRITES (Encoded safely) --- */
+        /* Enemy Variants via CSS Filters */
+        .bruiser { filter: hue-rotate(300deg) saturate(150%); } 
+        .hustler { filter: hue-rotate(200deg) saturate(200%); } 
+
+        /* --- HIGH QUALITY 16-BIT SVG SPRITES --- */
         .floor { background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" shape-rendering="crispEdges"><rect width="16" height="16" fill="%231a1a1a"/><path fill="%23111" d="M2,2 h2 v2 h-2 z M10,12 h2 v2 h-2 z M14,4 h1 v1 h-1 z M4,10 h1 v1 h-1 z"/><path fill="%23222" d="M12,2 h2 v2 h-2 z M2,12 h2 v2 h-2 z M6,6 h4 v4 h-4 z"/><path fill="%232a2a2a" d="M7,7 h2 v2 h-2 z"/></svg>'); }
         .wall { background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" shape-rendering="crispEdges"><rect width="16" height="16" fill="%234a2e2b"/><path fill="%232c1c1a" d="M0,3 h16 v1 h-16 z M0,7 h16 v1 h-16 z M0,11 h16 v1 h-16 z M0,15 h16 v1 h-16 z M4,0 v3 h1 v-3 z M12,0 v3 h1 v-3 z M8,4 v3 h1 v-3 z M16,4 v3 h1 v-3 z M4,8 v3 h1 v-3 z M12,8 v3 h1 v-3 z M8,12 v3 h1 v-3 z"/><path fill="%235c3a36" d="M0,0 h4 v1 h-4 z M5,0 h7 v1 h-7 z M13,0 h3 v1 h-3 z M0,4 h8 v1 h-8 z M9,4 h7 v1 h-7 z M0,8 h4 v1 h-4 z M5,8 h7 v1 h-7 z M13,8 h3 v1 h-3 z M0,12 h8 v1 h-8 z M9,12 h7 v1 h-7 z"/></svg>'); }
-        
-        /* Player: Mysterious Businessman (Fedora, Shades, Suit, Briefcase) */
         .sprite.player { z-index: 3; background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxNiAxNiIgc2hhcGUtcmVuZGVyaW5nPSJjcmlzcEVkZ2VzIj48ZWxsaXBzZSBjeD0iOCIgY3k9IjE1IiByeD0iNSIgcnk9IjIiIGZpbGw9InJnYmEoMCwwLDAsMC40KSIvPjxyZWN0IHg9IjUiIHk9IjEiIHdpZHRoPSI2IiBoZWlnaHQ9IjIiIGZpbGw9IiMyMjIiLz48cmVjdCB4PSI1IiB5PSIyIiB3aWR0aD0iNiIgaGVpZ2h0PSIxIiBmaWxsPSIjZDMyZjJmIi8+PHJlY3QgeD0iNCIgeT0iMyIgd2lkdGg9IjgiIGhlaWdodD0iMSIgZmlsbD0iIzExMSIvPjxyZWN0IHg9IjYiIHk9IjQiIHdpZHRoPSI0IiBoZWlnaHQ9IjMiIGZpbGw9IiNmNGMyOWYiLz48cmVjdCB4PSI2IiB5PSI0IiB3aWR0aD0iNCIgaGVpZ2h0PSIxIiBmaWxsPSIjMDAwIi8+PHJlY3QgeD0iMTAiIHk9IjQiIHdpZHRoPSIxIiBoZWlnaHQ9IjEiIGZpbGw9IiMxMTEiLz48cmVjdCB4PSI1IiB5PSI3IiB3aWR0aD0iNiIgaGVpZ2h0PSI1IiBmaWxsPSIjMmMzZTUwIi8+PHJlY3QgeD0iNyIgeT0iNyIgd2lkdGg9IjIiIGhlaWdodD0iMiIgZmlsbD0iI2ZmZiIvPjxyZWN0IHg9IjciIHk9IjciIHdpZHRoPSIxIiBoZWlnaHQ9IjQiIGZpbGw9IiNjMDM5MmIiLz48cmVjdCB4PSI0IiB5PSI3IiB3aWR0aD0iMSIgaGVpZ2h0PSI0IiBmaWxsPSIjMmMzZTUwIi8+PHJlY3QgeD0iMTEiIHk9IjciIHdpZHRoPSIxIiBoZWlnaHQ9IjMiIGZpbGw9IiMyYzNlNTAiLz48cmVjdCB4PSI0IiB5PSIxMSIgd2lkdGg9IjEiIGhlaWdodD0iMSIgZmlsbD0iI2Y0YzI5ZiIvPjxyZWN0IHg9IjExIiB5PSIxMCIgd2lkdGg9IjEiIGhlaWdodD0iMSIgZmlsbD0iI2Y0YzI5ZiIvPjxyZWN0IHg9IjExIiB5PSIxMSIgd2lkdGg9IjQiIGhlaWdodD0iMyIgZmlsbD0iIzZlMmMwMCIvPjxyZWN0IHg9IjEyIiB5PSIxMCIgd2lkdGg9IjIiIGhlaWdodD0iMSIgZmlsbD0iIzMzMyIvPjxyZWN0IHg9IjYiIHk9IjEyIiB3aWR0aD0iNCIgaGVpZ2h0PSIyIiBmaWxsPSIjMWEyNTJmIi8+PHJlY3QgeD0iNSIgeT0iMTQiIHdpZHRoPSIyIiBoZWlnaHQ9IjEiIGZpbGw9IiMxMTEiLz48cmVjdCB4PSI5IiB5PSIxNCIgd2lkdGg9IjIiIGhlaWdodD0iMSIgZmlsbD0iIzExMSIvPjwvc3ZnPg=='); }
-        
-        /* Enemy: Thug w/ Mohawk & Orange Vest */
         .sprite.enemy { z-index: 2; background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" shape-rendering="crispEdges"><ellipse cx="8" cy="15" rx="6" ry="2" fill="rgba(0,0,0,0.4)"/><path fill="%23111" d="M6,0 h4 v1 h1 v1 h2 v3 h1 v4 h-1 v2 h-1 v3 h1 v2 h-10 v-2 h1 v-3 h-1 v-2 h-1 v-4 h1 v-3 h2 v-1 h1 v-1 z"/><path fill="%232ecc71" d="M7,0 h2 v3 h-2 z M6,1 h4 v2 h-4 z"/><path fill="%23dcb38c" d="M6,3 h4 v4 h-4 z M3,9 h1 v2 h-1 z M12,9 h1 v2 h-1 z M5,4 h1 v3 h-1 z M10,4 h1 v3 h-1 z"/><path fill="%23111" d="M5,4 h6 v2 h-6 z"/><path fill="%23f39c12" d="M6,4 h1 v1 h-1 z M9,4 h1 v1 h-1 z"/><path fill="%23e67e22" d="M5,8 h6 v4 h-6 z M4,8 h1 v1 h-1 z M11,8 h1 v1 h-1 z"/><path fill="%23dcb38c" d="M7,8 h2 v3 h-2 z"/><path fill="%23111" d="M7,11 h2 v1 h-2 z"/><path fill="%234d5656" d="M5,12 h6 v3 h-6 z"/><path fill="%23111" d="M7,12 h2 v3 h-2 z"/><path fill="%237f8c8d" d="M4,13 h2 v3 h-2 z M10,13 h2 v3 h-2 z"/></svg>'); }
-        
-        /* Loot Crate */
         .sprite.loot { z-index: 1; background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" shape-rendering="crispEdges"><ellipse cx="8" cy="14" rx="7" ry="2" fill="rgba(0,0,0,0.4)"/><path fill="%23111" d="M2,6 h12 v7 h-12 z M3,5 h10 v1 h-10 z"/><path fill="%23f1c40f" d="M3,7 h10 v5 h-10 z"/><path fill="%23d35400" d="M3,11 h10 v1 h-10 z M3,7 h10 v1 h-10 z M5,8 h2 v3 h-2 z M9,8 h2 v3 h-2 z"/><path fill="%23fff" d="M3,7 h10 v1 h-10 z"/><path fill="%23111" d="M7,8 h2 v2 h-2 z"/></svg>'); }
-        
-        /* Stairs / Manhole */
+        .sprite.machine { z-index: 1; background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" shape-rendering="crispEdges"><ellipse cx="8" cy="15" rx="7" ry="2" fill="rgba(0,0,0,0.5)"/><rect x="3" y="2" width="10" height="13" fill="%232980b9"/><rect x="4" y="3" width="6" height="6" fill="%23ecf0f1"/><rect x="4" y="3" width="6" height="6" fill="%2385c1e9" fill-opacity="0.5"/><rect x="5" y="4" width="1" height="2" fill="%23e74c3c"/><rect x="7" y="4" width="1" height="2" fill="%23f1c40f"/><rect x="5" y="7" width="1" height="2" fill="%232ecc71"/><rect x="7" y="7" width="1" height="2" fill="%239b59b6"/><rect x="11" y="3" width="1" height="2" fill="%2334495e"/><rect x="4" y="11" width="6" height="2" fill="%23111"/></svg>'); }
         .sprite.stairs { z-index: 0; background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" shape-rendering="crispEdges"><ellipse cx="8" cy="10" rx="7" ry="4" fill="%23111"/><ellipse cx="8" cy="10" rx="6" ry="3" fill="%232c3e50"/><path fill="%23111" d="M6,8 h4 v5 h-4 z"/><path fill="%237f8c8d" d="M7,8 h2 v1 h-2 z M7,10 h2 v1 h-2 z M7,12 h2 v1 h-2 z"/><path fill="%2395a5a6" d="M6,8 h1 v5 h-1 z M9,8 h1 v5 h-1 z"/><ellipse cx="8" cy="5" rx="6" ry="3" fill="%2334495e"/><ellipse cx="8" cy="4" rx="6" ry="3" fill="%237f8c8d"/><path fill="%232c3e50" d="M4,4 h8 v1 h-8 z M6,3 h4 v1 h-4 z M6,5 h4 v1 h-4 z"/></svg>'); }
 
-        /* Smooth Breathing Idle Animation */
+        /* Animations */
         .anim-idle { animation: idleBounce 1.2s infinite ease-in-out alternate; }
-        @keyframes idleBounce {
-            0%   { transform: translateY(0px); }
-            100% { transform: translateY(-3px); }
-        }
+        @keyframes idleBounce { 0% { transform: translateY(0px); } 100% { transform: translateY(-3px); } }
 
-        /* Floating Mini Cards */
+        /* Floating Map UI */
         .floating-container {
             position: absolute; display: flex; gap: 4px; transition: all 0.2s ease;
             z-index: 10; pointer-events: none; background: rgba(0,0,0,0.85); padding: 4px;
@@ -106,7 +101,7 @@
 
         /* --- BOTTOM HUD --- */
         #bottom-hud {
-            height: 260px; background: #222; border-top: 2px solid #444; padding: 15px;
+            height: 270px; background: #222; border-top: 2px solid #444; padding: 10px;
             display: flex; flex-direction: column; align-items: center; justify-content: flex-end; z-index: 5;
         }
 
@@ -122,7 +117,6 @@
         }
         .card-red { color: var(--accent); }
         .card-hidden { background: #555; color: transparent; border-color: #333; }
-
         .card-corner { position: absolute; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 1.1rem; line-height: 1; font-weight: bold; }
         .top-left { top: 6px; left: 6px; }
         .bottom-right { bottom: 6px; right: 6px; transform: rotate(180deg); }
@@ -135,20 +129,26 @@
             box-shadow: 0 4px 6px rgba(0,0,0,0.5); display: flex; gap: 8px; align-items: center; pointer-events: none; 
         }
 
-        #dpad { display: grid; grid-template-columns: 55px 55px 55px; grid-template-rows: 55px 55px; gap: 5px; justify-content: center; width: 100%; }
+        #dpad { display: grid; grid-template-columns: 50px 50px 50px; grid-template-rows: 50px 50px; gap: 5px; justify-content: center; width: 100%; }
         #dpad .up { grid-column: 2; grid-row: 1; } #dpad .left { grid-column: 1; grid-row: 2; }
         #dpad .down { grid-column: 2; grid-row: 2; } #dpad .right { grid-column: 3; grid-row: 2; }
 
-        .control-btns { display: flex; gap: 15px; width: 100%; justify-content: center; }
+        .control-btns { display: flex; gap: 10px; width: 100%; justify-content: center; }
         button {
-            font-family: 'Courier New', Courier, monospace; font-weight: bold; font-size: 1.1rem;
-            padding: 14px; background: #333; color: #fff; border: 2px solid #777; border-radius: 8px; cursor: pointer;
+            font-family: 'Courier New', Courier, monospace; font-weight: bold; font-size: 1rem;
+            padding: 10px; background: #333; color: #fff; border: 2px solid #777; border-radius: 8px; cursor: pointer;
+            display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.2;
         }
         button:active { background: #fff; color: #000; border-color:#fff; }
-        #dpad button { padding: 0; font-size: 1.5rem; border-radius: 50%; height: 55px; display:flex; align-items:center; justify-content:center;}
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
+        #btn-cheat { background: #8e44ad; border-color: #9b59b6; }
+        #dpad button { padding: 0; font-size: 1.5rem; border-radius: 50%; height: 50px; }
+        .key-hint { font-size: 0.75rem; color: #aaa; margin-top: 2px; }
+        button:active .key-hint { color: #555; }
+        
         .hidden { display: none !important; }
 
-        /* --- MENUS & OVERLAYS --- */
+        /* --- MENUS --- */
         .overlay-screen {
             position: absolute; top: 0; left: 0; right: 0; bottom: 0;
             background: rgba(0,0,0,0.95); display: flex; flex-direction: column;
@@ -156,7 +156,6 @@
         }
         .title { color: var(--accent); font-size: 2.5rem; margin-bottom: 20px; text-shadow: 2px 2px #000; }
         .menu-btn { width: 80%; padding: 15px; font-size: 1.2rem; background: #222; }
-
     </style>
 </head>
 <body>
@@ -170,8 +169,8 @@
                 <span id="mode-label" style="font-size: 0.9rem; color: #aaa;"></span>
             </div>
             <div>
-                HP:<br>
-                <span id="player-hp" class="hp-bar">♥♥♥♥♥</span>
+                HP: <span id="player-hp" class="hp-bar">♥♥♥♥♥</span><br>
+                💵: <span id="player-cash" class="cash-bar">0</span>
             </div>
         </div>
         <div id="perks-bar"></div>
@@ -200,18 +199,29 @@
             <button class="right" id="btn-right">▶</button>
         </div>
 
+        <!-- Expanded Battle Actions -->
         <div id="battle-actions" class="control-btns hidden">
-            <button id="btn-hit" style="flex:1;">HIT</button>
-            <button id="btn-stand" style="flex:1;">STAND</button>
+            <button id="btn-hit" style="flex:1;">HIT <span class="key-hint">[Q]</span></button>
+            <button id="btn-stand" style="flex:1;">STAND <span class="key-hint">[E]</span></button>
+            <button id="btn-cheat" style="flex:1;">CHEAT ($5) <span class="key-hint">[R]</span></button>
         </div>
         
         <div id="battle-continue" class="control-btns hidden">
-            <button id="btn-next-hand" style="flex:1; background:#4caf50;">Next Hand</button>
+            <button id="btn-next-hand" style="flex:1; background:#4caf50; flex-direction:row; gap:5px;">
+                NEXT <span class="key-hint" style="margin:0; color:#fff;">[Space]</span>
+            </button>
+        </div>
+
+        <!-- Vending Actions -->
+        <div id="vending-actions" class="control-btns hidden">
+            <button id="btn-vend-buy" style="flex:1; background:#2980b9;">BUY ($5) <span class="key-hint">[Q]</span></button>
+            <button id="btn-vend-leave" style="flex:1;">LEAVE <span class="key-hint">[E]</span></button>
         </div>
     </div>
 
     <div id="main-menu" class="overlay-screen">
-        <h1 class="title">STREET JACK</h1>
+        <h1 class="title" style="margin-bottom:0;">STREET JACK</h1>
+        <p style="color:#aaa; font-style:italic; margin-bottom:20px;">The House Doesn't Always Win.</p>
         <button id="btn-resume" class="menu-btn hidden" style="background: #4caf50;">Resume Run</button>
         <button id="btn-new-run" class="menu-btn">Structured Run (10 St)</button>
         <button id="btn-endless" class="menu-btn">Endless Run</button>
@@ -230,15 +240,17 @@
     const GRID_SIZE = 10;
     const CELL_SIZE = 32; 
     
-    let gameState = 'MENU'; 
+    let gameState = 'MENU'; // MAP, BATTLE, VENDING, MENU, GAMEOVER, WIN
     let gameMode = 'structured'; 
     let currentFloor = 1;
-    let player = { x: 1, y: 1, hp: 5, maxHp: 5, perks: [] };
+    let player = { x: 1, y: 1, hp: 5, maxHp: 5, cash: 0, perks: [] };
     let map = [];
     let enemies = [];
     let loot = [];
+    let machines = [];
     let stairs = null;
     let currentEnemy = null;
+    let currentMachine = null;
     let kevlarActive = false; 
 
     /* --- BLACKJACK STATE --- */
@@ -248,6 +260,7 @@
     /* --- DOM --- */
     const elMapView = document.getElementById('map-view');
     const elPlayerHp = document.getElementById('player-hp');
+    const elPlayerCash = document.getElementById('player-cash');
     const elFloorNum = document.getElementById('floor-num');
     const elModeLabel = document.getElementById('mode-label');
     const elPerksBar = document.getElementById('perks-bar');
@@ -260,30 +273,35 @@
     const bigPlayerScore = document.getElementById('big-player-score');
     const miniEnemyCards = document.getElementById('mini-enemy-cards');
     const miniPlayerCards = document.getElementById('mini-player-cards');
+    
     const dpad = document.getElementById('dpad');
     const battleActions = document.getElementById('battle-actions');
+    const btnHit = document.getElementById('btn-hit');
+    const btnStand = document.getElementById('btn-stand');
+    const btnCheat = document.getElementById('btn-cheat');
     const battleContinue = document.getElementById('battle-continue');
+    const btnNextHand = document.getElementById('btn-next-hand');
+
+    const vendingActions = document.getElementById('vending-actions');
+    const btnVendBuy = document.getElementById('btn-vend-buy');
+    const btnVendLeave = document.getElementById('btn-vend-leave');
 
     function logMsg(msg) { elLog.innerText = msg; }
 
     /* --- SAVE / LOAD SYSTEM --- */
     function saveGame() {
         if (gameState !== 'MAP') return; 
-        const saveObj = { gameMode, currentFloor, player, map, enemies, loot, stairs };
+        const saveObj = { gameMode, currentFloor, player, map, enemies, loot, machines, stairs };
         localStorage.setItem('streetjack_save', JSON.stringify(saveObj));
     }
-
     function loadGame() {
         const saved = localStorage.getItem('streetjack_save');
         if (saved) {
             const data = JSON.parse(saved);
-            gameMode = data.gameMode;
-            currentFloor = data.currentFloor;
-            player = data.player;
-            map = data.map;
-            enemies = data.enemies;
-            loot = data.loot || [];
-            stairs = data.stairs;
+            gameMode = data.gameMode; currentFloor = data.currentFloor; player = data.player;
+            map = data.map; enemies = data.enemies; loot = data.loot || [];
+            machines = data.machines || []; stairs = data.stairs;
+            if(player.cash === undefined) player.cash = 0; 
             return true;
         }
         return false;
@@ -299,7 +317,7 @@
 
     function initNewGame() {
         currentFloor = 1;
-        player = { x: 1, y: 1, hp: 5, maxHp: 5, perks: [] };
+        player = { x: 1, y: 1, hp: 5, maxHp: 5, cash: 0, perks: [] };
         generateFloor();
     }
 
@@ -317,7 +335,9 @@
         'kevlar': { icon: '🛡️', name: 'Kevlar Vest (Block 1st Hit)' },
         'xray_specs': { icon: '👓', name: 'X-Ray Specs (See Cards)' },
         'vampire': { icon: '🦇', name: 'Vampire Fangs (Heal on Kill)' },
-        'first_aid': { icon: '🩹', name: 'First Aid (+2 Max HP)' }
+        'first_aid': { icon: '🩹', name: 'First Aid (+2 Max HP)' },
+        'lucky_tie': { icon: '👔', name: 'Lucky Tie (Blackjacks 2x Dmg)' },
+        'suitcase': { icon: '💼', name: 'The Suitcase (Ties deal 1 Dmg)' }
     };
 
     function triggerLoot() {
@@ -333,12 +353,11 @@
         saveGame();
     }
 
-    /* --- MAP LOGIC W/ FLOOD FILL PATHFINDING --- */
+    /* --- MAP GENERATION (FLOOD FILL) --- */
     function generateFloor() {
         let validMap = false;
         let emptyCells = [];
         
-        // Loop map generation until we get a fully connected path (Flood-Fill algorithm)
         while (!validMap) {
             map = [];
             for (let y = 0; y < GRID_SIZE; y++) {
@@ -349,17 +368,13 @@
                 }
                 map.push(row);
             }
-            
-            // Randomly generate 8 walls
             for(let i = 0; i < 8; i++) {
                 let wx = Math.floor(Math.random() * (GRID_SIZE - 2)) + 1;
                 let wy = Math.floor(Math.random() * (GRID_SIZE - 2)) + 1;
                 if(wx !== 1 || wy !== 1) map[wy][wx] = 1; 
             }
 
-            // Verify connectivity using Breadth-First Search (BFS) Flood Fill
-            let totalEmpty = 0;
-            emptyCells = [];
+            let totalEmpty = 0; emptyCells = [];
             for (let y = 1; y < GRID_SIZE - 1; y++) {
                 for (let x = 1; x < GRID_SIZE - 1; x++) {
                     if (map[y][x] === 0) {
@@ -369,34 +384,25 @@
                 }
             }
 
-            let visited = new Set();
-            let queue = [{x: 1, y: 1}];
-            visited.add('1,1');
+            let visited = new Set(); let queue = [{x: 1, y: 1}]; visited.add('1,1');
             let reachable = 1;
 
             while(queue.length > 0) {
                 let curr = queue.shift();
                 let dirs = [[0,-1], [0,1], [-1,0], [1,0]];
                 for(let d of dirs) {
-                    let nx = curr.x + d[0];
-                    let ny = curr.y + d[1];
-                    let key = nx + "," + ny;
+                    let nx = curr.x + d[0], ny = curr.y + d[1], key = nx + "," + ny;
                     if(map[ny][nx] === 0 && !visited.has(key)) {
-                        visited.add(key);
-                        queue.push({x: nx, y: ny});
-                        reachable++;
+                        visited.add(key); queue.push({x: nx, y: ny}); reachable++;
                     }
                 }
             }
-
-            // If we can reach every empty tile from the spawn, the map is perfectly valid!
             if (reachable === totalEmpty) validMap = true;
         }
 
         player.x = 1; player.y = 1;
-        enemies = []; loot = []; stairs = null;
+        enemies = []; loot = []; machines = []; stairs = null;
 
-        // Shuffle empty cells for random spawns
         for (let i = emptyCells.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
             [emptyCells[i], emptyCells[j]] = [emptyCells[j], emptyCells[i]];
@@ -404,37 +410,58 @@
         
         let enemyCount = currentFloor === 1 ? 2 : 3;
         let thugHp = 1 + Math.floor((currentFloor - 1) / 3); 
+        
         for(let i = 0; i < enemyCount; i++) {
             let cell = emptyCells.pop();
-            if(cell) enemies.push({ x: cell.x, y: cell.y, hp: thugHp, maxHp: thugHp, active: true });
+            if(cell) {
+                let eType = 'thug';
+                if (currentFloor >= 2) {
+                    let r = Math.random();
+                    if (r < 0.25) eType = 'bruiser';
+                    else if (r < 0.5) eType = 'hustler';
+                }
+                enemies.push({ x: cell.x, y: cell.y, hp: thugHp, maxHp: thugHp, active: true, type: eType });
+            }
         }
 
         let lootCell = emptyCells.pop();
         if(lootCell) loot.push({ x: lootCell.x, y: lootCell.y, active: true });
+
+        if (currentFloor >= 2 && Math.random() < 0.8) {
+            let machCell = emptyCells.pop();
+            if(machCell) machines.push({ x: machCell.x, y: machCell.y, active: true });
+        }
     }
 
     function drawMap() {
         elMapView.innerHTML = '';
         for (let y = 0; y < GRID_SIZE; y++) {
             for (let x = 0; x < GRID_SIZE; x++) {
-                // Environment Base Layer
                 let cell = document.createElement('div');
                 cell.className = map[y][x] === 1 ? 'cell wall' : 'cell floor';
                 
-                // Dynamic Entity Overlay Layer (Animated)
                 let spriteClass = null;
+                let extraClass = null;
+
                 if (player.x === x && player.y === y) spriteClass = 'player';
                 else if (stairs && stairs.x === x && stairs.y === y) spriteClass = 'stairs';
                 else {
                     let enemy = enemies.find(e => e.active && e.x === x && e.y === y);
                     let crate = loot.find(l => l.active && l.x === x && l.y === y);
-                    if (enemy) spriteClass = 'enemy';
+                    let mach = machines.find(m => m.active && m.x === x && m.y === y);
+                    
+                    if (enemy) { 
+                        spriteClass = 'enemy'; 
+                        if (enemy.type !== 'thug') extraClass = enemy.type; 
+                    }
                     else if (crate) spriteClass = 'loot';
+                    else if (mach) spriteClass = 'machine';
                 }
 
                 if (spriteClass) {
                     let sprite = document.createElement('div');
                     sprite.className = `sprite ${spriteClass}`;
+                    if (extraClass) sprite.classList.add(extraClass);
                     if (spriteClass === 'player' || spriteClass === 'enemy') sprite.classList.add('anim-idle');
                     cell.appendChild(sprite);
                 }
@@ -445,21 +472,20 @@
     }
 
     function updateHeader() {
-        // Handle gracefully if HP goes sky high
         let hpStr = '';
         if (player.maxHp <= 10) {
             hpStr = '♥'.repeat(Math.max(0, player.hp)) + '♡'.repeat(Math.max(0, player.maxHp - player.hp));
         } else {
             hpStr = `♥ ${player.hp} / ${player.maxHp}`;
         }
-        
         elPlayerHp.innerText = player.hp > 0 ? hpStr : '💀';
+        elPlayerCash.innerText = player.cash;
         elFloorNum.innerText = currentFloor;
         elModeLabel.innerText = gameMode === 'endless' ? '(Endless)' : '/10';
         elPerksBar.innerText = player.perks.map(p => PERK_DB[p].icon).join(' ');
     }
 
-    /* --- TURN-BASED COMBAT & AI MOVEMENT --- */
+    /* --- MAP MOVEMENT --- */
     function movePlayer(dx, dy) {
         if (gameState !== 'MAP') return;
         let nx = player.x + dx, ny = player.y + dy;
@@ -472,10 +498,15 @@
         let crate = loot.find(l => l.active && l.x === nx && l.y === ny);
         if (crate) { crate.active = false; triggerLoot(); }
 
+        let mach = machines.find(m => m.active && m.x === nx && m.y === ny);
+        if (mach) { 
+            startVending(mach); 
+            return; // Don't step onto machine tile, open prompt instead
+        }
+
         if (stairs && nx === stairs.x && ny === stairs.y) { nextFloor(); return; }
 
         player.x = nx; player.y = ny;
-        
         let battleInitiated = moveEnemies();
         
         drawMap();
@@ -486,7 +517,6 @@
         let battleStarted = false;
         for (let enemy of enemies) {
             if (!enemy.active) continue;
-            
             if (Math.random() < 0.4) continue; 
 
             let nx = enemy.x, ny = enemy.y;
@@ -508,6 +538,7 @@
             if (map[ny][nx] === 1) continue; 
             if (stairs && stairs.x === nx && stairs.y === ny) continue; 
             if (loot.some(l => l.active && l.x === nx && l.y === ny)) continue; 
+            if (machines.some(m => m.active && m.x === nx && m.y === ny)) continue;
             if (enemies.some(e => e.active && e.x === nx && e.y === ny)) continue; 
 
             if (nx === player.x && ny === player.y) {
@@ -520,12 +551,32 @@
         return battleStarted;
     }
 
+    /* --- GLOBAL KEYBOARD CONTROLS --- */
     document.addEventListener('keydown', (e) => {
-        if (e.key === 'ArrowUp' || e.key === 'w') movePlayer(0, -1);
-        else if (e.key === 'ArrowDown' || e.key === 's') movePlayer(0, 1);
-        else if (e.key === 'ArrowLeft' || e.key === 'a') movePlayer(-1, 0);
-        else if (e.key === 'ArrowRight' || e.key === 'd') movePlayer(1, 0);
+        let key = e.key.toLowerCase();
+        
+        if (gameState === 'MAP') {
+            if (key === 'arrowup' || key === 'w') movePlayer(0, -1);
+            else if (key === 'arrowdown' || key === 's') movePlayer(0, 1);
+            else if (key === 'arrowleft' || key === 'a') movePlayer(-1, 0);
+            else if (key === 'arrowright' || key === 'd') movePlayer(1, 0);
+        } 
+        else if (gameState === 'BATTLE') {
+            if (key === 'q' && !battleActions.classList.contains('hidden')) btnHit.click();
+            else if (key === 'e' && !battleActions.classList.contains('hidden')) btnStand.click();
+            else if (key === 'r' && !battleActions.classList.contains('hidden') && !btnCheat.disabled) btnCheat.click();
+            else if ((key === ' ' || key === 'enter') && !battleContinue.classList.contains('hidden')) {
+                e.preventDefault(); // Stop spacebar scrolling
+                btnNextHand.click();
+            }
+        }
+        else if (gameState === 'VENDING') {
+            if (key === 'q') btnVendBuy.click();
+            else if (key === 'e') btnVendLeave.click();
+        }
     });
+
+    // Mobile D-Pad
     document.getElementById('btn-up').onclick = () => movePlayer(0, -1);
     document.getElementById('btn-down').onclick = () => movePlayer(0, 1);
     document.getElementById('btn-left').onclick = () => movePlayer(-1, 0);
@@ -559,6 +610,45 @@
         }
     }
 
+    /* --- VENDING LOGIC --- */
+    function startVending(mach) {
+        gameState = 'VENDING';
+        currentMachine = mach;
+        dpad.classList.add('hidden');
+        vendingActions.classList.remove('hidden');
+        logMsg("Vending Machine: Heal +2 HP for $5?");
+    }
+
+    btnVendBuy.onclick = () => {
+        if (player.cash >= 5) {
+            if (player.hp < player.maxHp) {
+                player.cash -= 5;
+                player.hp = Math.min(player.maxHp, player.hp + 2);
+                currentMachine.active = false;
+                logMsg("Spent $5. Healed 2 HP.");
+            } else {
+                logMsg("HP already full. Saved cash.");
+            }
+        } else {
+            logMsg("Not enough cash! Need $5.");
+        }
+        endVending();
+    };
+
+    btnVendLeave.onclick = () => {
+        logMsg("Walked away from machine.");
+        endVending();
+    };
+
+    function endVending() {
+        vendingActions.classList.add('hidden');
+        dpad.classList.remove('hidden');
+        gameState = 'MAP';
+        updateHeader();
+        drawMap();
+        saveGame();
+    }
+
     /* --- BATTLE LOGIC --- */
     function startBattle(enemy) {
         gameState = 'BATTLE';
@@ -572,7 +662,8 @@
         miniPlayerCards.classList.remove('hidden');
         miniEnemyCards.classList.remove('hidden');
         
-        logMsg(`Thug [HP: ${enemy.hp}/${enemy.maxHp}]! Hit or Stand.`);
+        let typeName = enemy.type.charAt(0).toUpperCase() + enemy.type.slice(1);
+        logMsg(`${typeName} [HP: ${enemy.hp}/${enemy.maxHp}]! Hit, Stand or Cheat.`);
         startHand();
     }
 
@@ -618,6 +709,8 @@
         battleActions.classList.remove('hidden');
         battleContinue.classList.add('hidden');
         cardsAreStraight = false;
+        
+        btnCheat.disabled = player.cash < 5; 
 
         buildDeck();
         playerHand = [deck.pop(), deck.pop()];
@@ -625,7 +718,7 @@
         enemyHidden = !player.perks.includes('xray_specs');
 
         renderCards();
-        if (getScore(playerHand) === 21) { logMsg("Blackjack!"); endHand(true); }
+        if (getScore(playerHand) === 21) { logMsg("Blackjack!"); endHand(true, true); }
     }
 
     function renderCards() {
@@ -673,19 +766,36 @@
         straightTimeout = setTimeout(() => { cardsAreStraight = false; applyCardTransforms(); }, 2000); 
     });
 
-    document.getElementById('btn-hit').onclick = () => {
+    btnHit.onclick = () => {
         if (gameState !== 'BATTLE') return;
         playerHand.push(deck.pop()); cardsAreStraight = false; renderCards();
-        if (getScore(playerHand) > 21) { logMsg("Bust!"); endHand(false); }
-        else if (getScore(playerHand) === 21) endHand(true);
+        if (getScore(playerHand) > 21) { logMsg("Bust!"); endHand(false, false); }
+        else if (getScore(playerHand) === 21) endHand(true, false);
     };
 
-    document.getElementById('btn-stand').onclick = () => { if (gameState === 'BATTLE') endHand(true); };
+    btnStand.onclick = () => { if (gameState === 'BATTLE') endHand(true, false); };
 
-    function endHand(dealerPlays) {
+    btnCheat.onclick = () => {
+        if (gameState !== 'BATTLE' || player.cash < 5) return;
+        player.cash -= 5;
+        updateHeader();
+        
+        playerHand.pop();
+        playerHand.push(deck.pop());
+        cardsAreStraight = false;
+        logMsg("Sleight of hand! Swapped card.");
+        renderCards();
+        
+        btnCheat.disabled = player.cash < 5;
+        
+        if (getScore(playerHand) > 21) { logMsg("Still busted!"); endHand(false, false); }
+        else if (getScore(playerHand) === 21) endHand(true, false);
+    };
+
+    function endHand(dealerPlays, isPureBlackjack) {
         battleActions.classList.add('hidden');
         enemyHidden = false; renderCards();
-        if (!dealerPlays) { resolveDamage('PLAYER'); return; }
+        if (!dealerPlays) { resolveDamage('PLAYER', false); return; }
 
         let pScore = getScore(playerHand);
         const dealerHit = setInterval(() => {
@@ -694,22 +804,44 @@
             else {
                 clearInterval(dealerHit);
                 eScore = getScore(enemyHand);
-                if (eScore > 21) { logMsg("Thug busts!"); resolveDamage('ENEMY'); }
-                else if (pScore > eScore) { logMsg("You win hand!"); resolveDamage('ENEMY'); }
-                else if (eScore > pScore) { logMsg("Thug wins hand."); resolveDamage('PLAYER'); }
-                else { logMsg("Push! Dead heat."); checkBattleState(); }
+                if (eScore > 21) { logMsg("Thug busts!"); resolveDamage('ENEMY', isPureBlackjack); }
+                else if (pScore > eScore) { logMsg("You win hand!"); resolveDamage('ENEMY', isPureBlackjack); }
+                else if (eScore > pScore) { logMsg(`${currentEnemy.type.toUpperCase()} wins hand.`); resolveDamage('PLAYER', false); }
+                else { 
+                    if (currentEnemy.type === 'hustler') {
+                        logMsg("Hustlers win ties! You get hit.");
+                        resolveDamage('PLAYER', false);
+                    } else if (player.perks.includes('suitcase')) {
+                        logMsg("Suitcase strike! Tie deals 1 dmg.");
+                        currentEnemy.hp -= 1;
+                        checkBattleState();
+                    } else {
+                        logMsg("Push! Dead heat."); 
+                        checkBattleState(); 
+                    }
+                }
             }
         }, 800);
     }
 
-    function resolveDamage(target) {
+    function resolveDamage(target, isPureBlackjack) {
         if (target === 'PLAYER') {
             if (kevlarActive) { logMsg("Kevlar Blocked Damage!"); kevlarActive = false; } 
-            else { player.hp -= 1; }
+            else { 
+                let dmg = currentEnemy.type === 'bruiser' ? 2 : 1;
+                player.hp -= dmg; 
+                logMsg(`Took ${dmg} damage!`);
+            }
         } else {
-            let dmg = player.perks.includes('brass_knuckles') ? 2 : 1;
+            let dmg = 1;
+            if (player.perks.includes('brass_knuckles')) dmg += 1;
+            if (isPureBlackjack && player.perks.includes('lucky_tie')) {
+                dmg *= 2; 
+                logMsg(`Lucky Tie! Deal ${dmg} damage!`);
+            } else {
+                logMsg(`Dealt ${dmg} damage!`);
+            }
             currentEnemy.hp -= dmg;
-            logMsg(`Dealt ${dmg} damage!`);
         }
         updateHeader();
         checkBattleState();
@@ -720,18 +852,27 @@
         else if (currentEnemy.hp <= 0) {
             logMsg("Thug knocked out!");
             currentEnemy.active = false;
+            
+            let lootCash = Math.floor(Math.random() * 3) + 1; 
+            if (currentEnemy.type === 'hustler' || currentEnemy.type === 'bruiser') lootCash += 2; 
+            player.cash += lootCash;
+            logMsg(`Thug knocked out! Got $${lootCash}.`);
+
             if (player.perks.includes('vampire')) {
                 player.hp = Math.min(player.maxHp, player.hp + 1);
-                updateHeader();
             }
-            setTimeout(endBattle, 1200);
+            
+            updateHeader();
+            setTimeout(endBattle, 1500);
         } else {
             battleContinue.classList.remove('hidden');
+            btnNextHand.focus(); // Quality of life for keyboard flow
         }
     }
 
-    document.getElementById('btn-next-hand').onclick = () => {
-        logMsg(`Thug [HP: ${currentEnemy.hp}/${currentEnemy.maxHp}]. Fight!`);
+    btnNextHand.onclick = () => {
+        let typeName = currentEnemy.type.charAt(0).toUpperCase() + currentEnemy.type.slice(1);
+        logMsg(`${typeName} [HP: ${currentEnemy.hp}/${currentEnemy.maxHp}]. Fight!`);
         startHand();
     };
 

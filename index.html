@@ -50,9 +50,10 @@
         }
 
         #log {
-            position: absolute; top: 10px; text-align: center;
-            color: #4caf50; font-size: 0.85rem; font-weight: bold;
-            text-shadow: 1px 1px 0 #000; width: 100%; padding: 0 10px; z-index: 2;
+            position: absolute; top: 8px; text-align: center;
+            color: #4caf50; font-size: 0.78rem; font-weight: bold;
+            text-shadow: 1px 1px 0 #000; width: 100%; padding: 0 14px; z-index: 2;
+            line-height: 1.4; word-break: break-word; white-space: normal;
         }
 
         #map-container {
@@ -70,8 +71,16 @@
         .sprite { width: 100%; height: 100%; background-size: cover; image-rendering: pixelated; position: absolute; top: 0; left: 0; }
 
         /* Enemy Variants via CSS Filters */
-        .bruiser { filter: hue-rotate(300deg) saturate(150%); } 
-        .hustler { filter: hue-rotate(200deg) saturate(200%); } 
+        .bruiser { filter: hue-rotate(300deg) saturate(150%); }
+        .bruiser.anim-idle { animation: bruiserIdle 1.2s infinite ease-in-out alternate; }
+        @keyframes bruiserIdle { 0% { transform: translateY(0px) scale(1.1); } 100% { transform: translateY(-3px) scale(1.1); } }
+        .hustler { filter: hue-rotate(200deg) saturate(200%); }
+        .loan_shark { filter: hue-rotate(160deg) saturate(250%) brightness(1.2); }
+        .loan_shark.anim-idle { animation: loanSharkIdle 1.2s infinite ease-in-out alternate; }
+        @keyframes loanSharkIdle { 0% { transform: translateY(0px) scale(1.15); } 100% { transform: translateY(-4px) scale(1.15); } }
+        .the_don { filter: hue-rotate(45deg) saturate(300%) brightness(1.15); }
+        .the_don.anim-idle { animation: theDonIdle 1.2s infinite ease-in-out alternate; }
+        @keyframes theDonIdle { 0% { transform: translateY(0px) scale(1.2); } 100% { transform: translateY(-4px) scale(1.2); } }
 
         /* --- HIGH QUALITY 16-BIT SVG SPRITES --- */
         .floor { background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" shape-rendering="crispEdges"><rect width="16" height="16" fill="%231a1a1a"/><path fill="%23111" d="M2,2 h2 v2 h-2 z M10,12 h2 v2 h-2 z M14,4 h1 v1 h-1 z M4,10 h1 v1 h-1 z"/><path fill="%23222" d="M12,2 h2 v2 h-2 z M2,12 h2 v2 h-2 z M6,6 h4 v4 h-4 z"/><path fill="%232a2a2a" d="M7,7 h2 v2 h-2 z"/></svg>'); }
@@ -85,6 +94,20 @@
         /* Animations */
         .anim-idle { animation: idleBounce 1.2s infinite ease-in-out alternate; }
         @keyframes idleBounce { 0% { transform: translateY(0px); } 100% { transform: translateY(-3px); } }
+
+        /* Stairs Glow */
+        .sprite.stairs { animation: stairsGlow 2s infinite ease-in-out; }
+        @keyframes stairsGlow {
+            0%   { filter: brightness(1) drop-shadow(0 0 2px #7f8c8d); }
+            50%  { filter: brightness(1.5) drop-shadow(0 0 10px #bdc3c7); }
+            100% { filter: brightness(1) drop-shadow(0 0 2px #7f8c8d); }
+        }
+
+        /* Score Heat Colors */
+        #big-player-score.score-safe   { color: #4caf50; }
+        #big-player-score.score-risky  { color: #f1c40f; }
+        #big-player-score.score-danger { color: var(--accent); }
+        #big-player-score.score-bj     { color: #9b59b6; }
 
         /* Floating Map UI */
         .floating-container {
@@ -101,7 +124,8 @@
 
         /* --- BOTTOM HUD --- */
         #bottom-hud {
-            height: 270px; background: #222; border-top: 2px solid #444; padding: 10px;
+            height: 270px; background: #222; border-top: 2px solid #444;
+            padding: 10px 10px max(45px, env(safe-area-inset-bottom, 45px)) 10px;
             display: flex; flex-direction: column; align-items: center; justify-content: flex-end; z-index: 5;
         }
 
@@ -148,6 +172,22 @@
         
         .hidden { display: none !important; }
 
+        /* Perk Choice Buttons */
+        .perk-option-btn {
+            width: 100%; padding: 11px 14px; background: #1a1a1a;
+            border: 2px solid #555; border-radius: 8px; cursor: pointer;
+            text-align: left; display: flex; align-items: center; gap: 10px;
+            font-family: 'Courier New', Courier, monospace; font-size: 0.95rem; color: #eee;
+            flex-direction: row; justify-content: flex-start;
+            transition: background 0.15s, border-color 0.15s;
+        }
+        .perk-option-btn:hover, .perk-option-btn:focus { background: #2a2a2a; border-color: var(--gold); outline: none; }
+        .perk-key-hint { color: var(--gold); font-weight: bold; min-width: 22px; font-size: 1rem; }
+        .perk-icon { font-size: 1.4rem; }
+        .perk-desc-block { display: flex; flex-direction: column; }
+        .perk-name { font-weight: bold; font-size: 0.9rem; }
+        .perk-flavor { font-size: 0.78rem; color: #888; margin-top: 1px; }
+
         /* --- MENUS --- */
         .overlay-screen {
             position: absolute; top: 0; left: 0; right: 0; bottom: 0;
@@ -174,7 +214,7 @@
             </div>
         </div>
         <div id="perks-bar"></div>
-        <div id="enemy-score-board" class="hidden">Thug Score: <span id="big-enemy-score">0</span></div>
+        <div id="enemy-score-board" class="hidden"><span id="enemy-score-label">Enemy</span> Score: <span id="big-enemy-score">0</span></div>
     </div>
 
     <div id="mid-area">
@@ -203,7 +243,7 @@
         <div id="battle-actions" class="control-btns hidden">
             <button id="btn-hit" style="flex:1;">HIT <span class="key-hint">[Q]</span></button>
             <button id="btn-stand" style="flex:1;">STAND <span class="key-hint">[E]</span></button>
-            <button id="btn-cheat" style="flex:1;">CHEAT ($5) <span class="key-hint">[R]</span></button>
+            <button id="btn-cheat" style="flex:1;">CHEAT ($3) <span class="key-hint">[R]</span></button>
         </div>
         
         <div id="battle-continue" class="control-btns hidden">
@@ -219,6 +259,12 @@
         </div>
     </div>
 
+    <div id="perk-choice-screen" class="overlay-screen hidden">
+        <h2 style="color: var(--gold); margin-bottom: 4px;">LOOT FOUND!</h2>
+        <p style="color:#aaa; margin-bottom:14px; font-size:0.9rem;">Choose your perk:</p>
+        <div id="perk-options" style="width:100%; display:flex; flex-direction:column; gap:10px; padding: 0 20px;"></div>
+    </div>
+
     <div id="main-menu" class="overlay-screen">
         <h1 class="title" style="margin-bottom:0;">STREET JACK</h1>
         <p style="color:#aaa; font-style:italic; margin-bottom:20px;">The House Doesn't Always Win.</p>
@@ -229,7 +275,8 @@
 
     <div id="end-screen" class="overlay-screen hidden">
         <h2 id="end-title" class="title">Game Over</h2>
-        <p id="end-desc" style="font-size: 1.2rem; margin-bottom: 20px;">You got beaten up.</p>
+        <p id="end-desc" style="font-size: 1.2rem; margin-bottom: 10px;">You got beaten up.</p>
+        <div id="run-summary" style="color:#aaa; font-size:0.9rem; text-align:left; line-height:2.2; margin-bottom:15px; border:1px solid #333; padding:12px 20px; border-radius:6px; min-width:220px;"></div>
         <button onclick="location.reload()" class="menu-btn">Return to Menu</button>
     </div>
 
@@ -251,7 +298,9 @@
     let stairs = null;
     let currentEnemy = null;
     let currentMachine = null;
-    let kevlarActive = false; 
+    let kevlarActive = false;
+    let isCheatProcessing = false;
+    let runStats = { floorsCleared: 0, enemiesDefeated: 0, perksCollected: 0, cashEarned: 0 };
 
     /* --- BLACKJACK STATE --- */
     let deck = [], playerHand = [], enemyHand = [], enemyHidden = true;
@@ -291,7 +340,7 @@
     /* --- SAVE / LOAD SYSTEM --- */
     function saveGame() {
         if (gameState !== 'MAP') return; 
-        const saveObj = { gameMode, currentFloor, player, map, enemies, loot, machines, stairs };
+        const saveObj = { gameMode, currentFloor, player, map, enemies, loot, machines, stairs, runStats };
         localStorage.setItem('streetjack_save', JSON.stringify(saveObj));
     }
     function loadGame() {
@@ -301,7 +350,8 @@
             gameMode = data.gameMode; currentFloor = data.currentFloor; player = data.player;
             map = data.map; enemies = data.enemies; loot = data.loot || [];
             machines = data.machines || []; stairs = data.stairs;
-            if(player.cash === undefined) player.cash = 0; 
+            runStats = data.runStats || { floorsCleared: 0, enemiesDefeated: 0, perksCollected: 0, cashEarned: 0 };
+            if (player.cash === undefined) player.cash = 0;
             return true;
         }
         return false;
@@ -318,6 +368,7 @@
     function initNewGame() {
         currentFloor = 1;
         player = { x: 1, y: 1, hp: 5, maxHp: 5, cash: 0, perks: [] };
+        runStats = { floorsCleared: 0, enemiesDefeated: 0, perksCollected: 0, cashEarned: 0 };
         generateFloor();
     }
 
@@ -331,24 +382,70 @@
 
     /* --- PERKS SYSTEM --- */
     const PERK_DB = {
-        'brass_knuckles': { icon: '🥊', name: 'Brass Knuckles (+1 Dmg)' },
-        'kevlar': { icon: '🛡️', name: 'Kevlar Vest (Block 1st Hit)' },
-        'xray_specs': { icon: '👓', name: 'X-Ray Specs (See Cards)' },
-        'vampire': { icon: '🦇', name: 'Vampire Fangs (Heal on Kill)' },
-        'first_aid': { icon: '🩹', name: 'First Aid (+2 Max HP)' },
-        'lucky_tie': { icon: '👔', name: 'Lucky Tie (Blackjacks 2x Dmg)' },
-        'suitcase': { icon: '💼', name: 'The Suitcase (Ties deal 1 Dmg)' }
+        'brass_knuckles': { icon: '🥊', name: 'Brass Knuckles (+1 Dmg)',    desc: 'Hit harder. Win faster.' },
+        'kevlar':         { icon: '🛡️', name: 'Kevlar Vest (Block 1st Hit)', desc: 'Absorbs the first hit each fight.' },
+        'xray_specs':     { icon: '👓', name: 'X-Ray Specs (See Cards)',     desc: 'See the enemy\'s hidden card.' },
+        'vampire':        { icon: '🦇', name: 'Vampire Fangs (Heal on Kill)',desc: 'Steal +1 HP on every knockout.' },
+        'first_aid':      { icon: '🩹', name: 'First Aid (+2 Max HP)',       desc: 'Patch up. Raise your HP ceiling.' },
+        'lucky_tie':      { icon: '👔', name: 'Lucky Tie (Blackjacks 2x Dmg)', desc: 'Blackjacks deal double damage.' },
+        'suitcase':       { icon: '💼', name: 'The Suitcase (Ties deal 1 Dmg)', desc: 'Turn a push into a strike.' }
+    };
+
+    const ENEMY_ABILITY_DB = {
+        'thug':       { icon: '👊', hint: 'Basic street fighter.' },
+        'hustler':    { icon: '🎰', hint: 'Wins all ties!' },
+        'bruiser':    { icon: '🥊', hint: 'Deals 2 damage per loss!' },
+        'loan_shark': { icon: '🦈', hint: 'Hits up to 18. Deals 2 damage!' },
+        'the_don':    { icon: '🎩', hint: 'Never busts. Deals 2 damage!' }
+    };
+
+    const BOSS_DB = {
+        'loan_shark': { name: 'The Loan Shark', hp: 5, damage: 2, cash: 8 },
+        'the_don':    { name: 'The Don',         hp: 7, damage: 2, cash: 12 }
     };
 
     function triggerLoot() {
         let pool = Object.keys(PERK_DB).filter(k => k === 'first_aid' || !player.perks.includes(k));
-        if(pool.length === 0) pool = ['first_aid']; 
-        let chosen = pool[Math.floor(Math.random() * pool.length)];
-        
-        if (chosen === 'first_aid') { player.maxHp += 2; player.hp = player.maxHp; } 
-        else { player.perks.push(chosen); }
-        
-        logMsg(`Loot Found: ${PERK_DB[chosen].name}!`);
+        if (pool.length === 0) pool = ['first_aid'];
+        for (let i = pool.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [pool[i], pool[j]] = [pool[j], pool[i]];
+        }
+        showPerkChoiceUI(pool.slice(0, Math.min(3, pool.length)));
+    }
+
+    function showPerkChoiceUI(choices) {
+        gameState = 'PERK_CHOICE';
+        dpad.classList.add('hidden');
+        const screen = document.getElementById('perk-choice-screen');
+        const optionsEl = document.getElementById('perk-options');
+        optionsEl.innerHTML = '';
+        choices.forEach((key, i) => {
+            const perk = PERK_DB[key];
+            const btn = document.createElement('button');
+            btn.className = 'perk-option-btn';
+            btn.innerHTML =
+                `<span class="perk-key-hint">[${i+1}]</span>` +
+                `<span class="perk-icon">${perk.icon}</span>` +
+                `<span class="perk-desc-block">` +
+                `<span class="perk-name">${perk.name}</span>` +
+                `<span class="perk-flavor">${perk.desc}</span>` +
+                `</span>`;
+            btn.onclick = () => applyPerkChoice(key);
+            optionsEl.appendChild(btn);
+        });
+        screen.classList.remove('hidden');
+    }
+
+    function applyPerkChoice(key) {
+        document.getElementById('perk-choice-screen').classList.add('hidden');
+        if (key === 'first_aid') { player.maxHp += 2; player.hp = player.maxHp; }
+        else { player.perks.push(key); }
+        runStats.perksCollected++;
+        SFX.loot();
+        logMsg(`Perk gained: ${PERK_DB[key].name}!`);
+        dpad.classList.remove('hidden');
+        gameState = 'MAP';
         updateHeader();
         saveGame();
     }
@@ -408,19 +505,27 @@
             [emptyCells[i], emptyCells[j]] = [emptyCells[j], emptyCells[i]];
         }
         
-        let enemyCount = currentFloor === 1 ? 2 : 3;
-        let thugHp = 1 + Math.floor((currentFloor - 1) / 3); 
-        
-        for(let i = 0; i < enemyCount; i++) {
+        let isBossFloor = currentFloor % 5 === 0;
+
+        if (isBossFloor) {
+            let bossKey = currentFloor <= 5 ? 'loan_shark' : 'the_don';
+            let boss = BOSS_DB[bossKey];
             let cell = emptyCells.pop();
-            if(cell) {
-                let eType = 'thug';
-                if (currentFloor >= 2) {
-                    let r = Math.random();
-                    if (r < 0.25) eType = 'bruiser';
-                    else if (r < 0.5) eType = 'hustler';
+            if (cell) enemies.push({ x: cell.x, y: cell.y, hp: boss.hp, maxHp: boss.hp, active: true, type: bossKey, isBoss: true });
+        } else {
+            let enemyCount = currentFloor === 1 ? 2 : 3;
+            let thugHp = 1 + Math.floor((currentFloor - 1) / 3);
+            for (let i = 0; i < enemyCount; i++) {
+                let cell = emptyCells.pop();
+                if (cell) {
+                    let eType = 'thug';
+                    if (currentFloor >= 2) {
+                        let r = Math.random();
+                        if (r < 0.25) eType = 'bruiser';
+                        else if (r < 0.5) eType = 'hustler';
+                    }
+                    enemies.push({ x: cell.x, y: cell.y, hp: thugHp, maxHp: thugHp, active: true, type: eType });
                 }
-                enemies.push({ x: cell.x, y: cell.y, hp: thugHp, maxHp: thugHp, active: true, type: eType });
             }
         }
 
@@ -535,8 +640,9 @@
                 nx += r[0]; ny += r[1];
             }
 
-            if (map[ny][nx] === 1) continue; 
-            if (stairs && stairs.x === nx && stairs.y === ny) continue; 
+            if (nx < 0 || nx >= GRID_SIZE || ny < 0 || ny >= GRID_SIZE) continue;
+            if (map[ny][nx] === 1) continue;
+            if (stairs && stairs.x === nx && stairs.y === ny) continue;
             if (loot.some(l => l.active && l.x === nx && l.y === ny)) continue; 
             if (machines.some(m => m.active && m.x === nx && m.y === ny)) continue;
             if (enemies.some(e => e.active && e.x === nx && e.y === ny)) continue; 
@@ -574,6 +680,12 @@
             if (key === 'q') btnVendBuy.click();
             else if (key === 'e') btnVendLeave.click();
         }
+        else if (gameState === 'PERK_CHOICE') {
+            let opts = document.querySelectorAll('.perk-option-btn');
+            if (key === '1' && opts[0]) opts[0].click();
+            else if (key === '2' && opts[1]) opts[1].click();
+            else if (key === '3' && opts[2]) opts[2].click();
+        }
     });
 
     // Mobile D-Pad
@@ -601,7 +713,9 @@
         if (gameMode === 'structured' && currentFloor >= 10) {
             endGame(true);
         } else {
+            SFX.stairs();
             currentFloor++;
+            runStats.floorsCleared++;
             logMsg(`Entered Street ${currentFloor}.`);
             generateFloor();
             drawMap();
@@ -621,13 +735,13 @@
 
     btnVendBuy.onclick = () => {
         if (player.cash >= 5) {
+            currentMachine.active = false;
             if (player.hp < player.maxHp) {
                 player.cash -= 5;
                 player.hp = Math.min(player.maxHp, player.hp + 2);
-                currentMachine.active = false;
                 logMsg("Spent $5. Healed 2 HP.");
             } else {
-                logMsg("HP already full. Saved cash.");
+                logMsg("HP already full. Machine used up.");
             }
         } else {
             logMsg("Not enough cash! Need $5.");
@@ -654,16 +768,27 @@
         gameState = 'BATTLE';
         currentEnemy = enemy;
         cardsAreStraight = false;
-        kevlarActive = player.perks.includes('kevlar'); 
-        
+        kevlarActive = player.perks.includes('kevlar');
+        buildDeck();
+
         dpad.classList.add('hidden');
         enemyScoreBoard.classList.remove('hidden');
         playerUI.classList.remove('hidden');
         miniPlayerCards.classList.remove('hidden');
         miniEnemyCards.classList.remove('hidden');
         
-        let typeName = enemy.type.charAt(0).toUpperCase() + enemy.type.slice(1);
-        logMsg(`${typeName} [HP: ${enemy.hp}/${enemy.maxHp}]! Hit, Stand or Cheat.`);
+        let typeName = enemy.isBoss ? BOSS_DB[enemy.type].name : enemy.type.charAt(0).toUpperCase() + enemy.type.slice(1);
+        document.getElementById('enemy-score-label').innerText = typeName;
+        let edb = ENEMY_ABILITY_DB[enemy.type] || { icon: '👊', hint: '' };
+        if (enemy.isBoss) {
+            let boss = BOSS_DB[enemy.type];
+            logMsg(`${edb.icon} BOSS: ${boss.name.toUpperCase()}! ${edb.hint}`);
+        } else {
+            logMsg(`${edb.icon} ${typeName.toUpperCase()} — ${edb.hint}`);
+        }
+        setTimeout(() => {
+            if (gameState === 'BATTLE') logMsg(`${typeName} [HP: ${enemy.hp}/${enemy.maxHp}]! Hit, Stand or Cheat.`);
+        }, 2000);
         startHand();
     }
 
@@ -710,12 +835,12 @@
         battleContinue.classList.add('hidden');
         cardsAreStraight = false;
         
-        btnCheat.disabled = player.cash < 5; 
+        btnCheat.disabled = player.cash < 3;
 
-        buildDeck();
         playerHand = [deck.pop(), deck.pop()];
         enemyHand = [deck.pop(), deck.pop()];
         enemyHidden = !player.perks.includes('xray_specs');
+        SFX.cardDeal();
 
         renderCards();
         if (getScore(playerHand) === 21) { logMsg("Blackjack!"); endHand(true, true); }
@@ -741,8 +866,10 @@
             cardFan.appendChild(el);
         });
         
-        bigPlayerScore.innerText = getScore(playerHand);
-        applyCardTransforms(); 
+        let ps = getScore(playerHand);
+        bigPlayerScore.innerText = ps;
+        bigPlayerScore.className = ps === 21 ? 'score-bj' : ps >= 19 ? 'score-danger' : ps >= 16 ? 'score-risky' : 'score-safe';
+        applyCardTransforms();
     }
 
     function applyCardTransforms() {
@@ -768,26 +895,29 @@
 
     btnHit.onclick = () => {
         if (gameState !== 'BATTLE') return;
+        SFX.cardDeal();
         playerHand.push(deck.pop()); cardsAreStraight = false; renderCards();
-        if (getScore(playerHand) > 21) { logMsg("Bust!"); endHand(false, false); }
+        if (getScore(playerHand) > 21) { SFX.bust(); logMsg("Bust!"); endHand(false, false); }
         else if (getScore(playerHand) === 21) endHand(true, false);
     };
 
     btnStand.onclick = () => { if (gameState === 'BATTLE') endHand(true, false); };
 
     btnCheat.onclick = () => {
-        if (gameState !== 'BATTLE' || player.cash < 5) return;
-        player.cash -= 5;
+        if (isCheatProcessing || gameState !== 'BATTLE' || player.cash < 3) return;
+        isCheatProcessing = true;
+        player.cash -= 3;
         updateHeader();
-        
+
         playerHand.pop();
         playerHand.push(deck.pop());
         cardsAreStraight = false;
         logMsg("Sleight of hand! Swapped card.");
         renderCards();
-        
-        btnCheat.disabled = player.cash < 5;
-        
+
+        btnCheat.disabled = player.cash < 3;
+        isCheatProcessing = false;
+
         if (getScore(playerHand) > 21) { logMsg("Still busted!"); endHand(false, false); }
         else if (getScore(playerHand) === 21) endHand(true, false);
     };
@@ -800,24 +930,39 @@
         let pScore = getScore(playerHand);
         const dealerHit = setInterval(() => {
             let eScore = getScore(enemyHand);
-            if (eScore < 17) { enemyHand.push(deck.pop()); renderCards(); } 
+            let hitThreshold = (currentEnemy.isBoss && currentEnemy.type === 'loan_shark') ? 18 : 17;
+            if (eScore < hitThreshold) { enemyHand.push(deck.pop()); renderCards(); }
             else {
                 clearInterval(dealerHit);
                 eScore = getScore(enemyHand);
-                if (eScore > 21) { logMsg("Thug busts!"); resolveDamage('ENEMY', isPureBlackjack); }
-                else if (pScore > eScore) { logMsg("You win hand!"); resolveDamage('ENEMY', isPureBlackjack); }
-                else if (eScore > pScore) { logMsg(`${currentEnemy.type.toUpperCase()} wins hand.`); resolveDamage('PLAYER', false); }
-                else { 
-                    if (currentEnemy.type === 'hustler') {
-                        logMsg("Hustlers win ties! You get hit.");
-                        resolveDamage('PLAYER', false);
+                let tn = currentEnemy.isBoss ? BOSS_DB[currentEnemy.type].name : (currentEnemy.type.charAt(0).toUpperCase() + currentEnemy.type.slice(1));
+                let resultPrefix = `You: ${pScore} vs ${tn}: ${eScore > 21 ? 'BUST' : eScore}`;
+                if (eScore > 21) {
+                    if (currentEnemy.isBoss && currentEnemy.type === 'the_don') {
+                        eScore = 17; // The Don never busts
+                        let donPrefix = `You: ${pScore} vs The Don: 17`;
+                        if (pScore > 17) { logMsg(`${donPrefix} — You win!`); SFX.winHand(); setTimeout(() => resolveDamage('ENEMY', isPureBlackjack), 1200); }
+                        else if (17 > pScore) { logMsg(`${donPrefix} — The Don wins.`); SFX.loseHand(); setTimeout(() => resolveDamage('PLAYER', false), 1200); }
+                        else {
+                            if (player.perks.includes('suitcase')) { logMsg("Suitcase strike! Tie deals 1 dmg."); currentEnemy.hp -= 1; checkBattleState(); }
+                            else { logMsg("Push! Dead heat."); checkBattleState(); }
+                        }
+                    } else {
+                        logMsg(`${resultPrefix} — ${tn} busts!`); SFX.winHand(); setTimeout(() => resolveDamage('ENEMY', isPureBlackjack), 1200);
+                    }
+                }
+                else if (pScore > eScore) { logMsg(`${resultPrefix} — You win!`); SFX.winHand(); setTimeout(() => resolveDamage('ENEMY', isPureBlackjack), 1200); }
+                else if (eScore > pScore) { logMsg(`${resultPrefix} — ${tn} wins.`); SFX.loseHand(); setTimeout(() => resolveDamage('PLAYER', false), 1200); }
+                else {
+                    if (currentEnemy.type === 'hustler' || currentEnemy.isBoss) {
+                        logMsg(`${tn} wins ties! You get hit.`); SFX.loseHand(); setTimeout(() => resolveDamage('PLAYER', false), 1200);
                     } else if (player.perks.includes('suitcase')) {
                         logMsg("Suitcase strike! Tie deals 1 dmg.");
                         currentEnemy.hp -= 1;
                         checkBattleState();
                     } else {
-                        logMsg("Push! Dead heat."); 
-                        checkBattleState(); 
+                        logMsg("Push! Dead heat.");
+                        checkBattleState();
                     }
                 }
             }
@@ -826,9 +971,9 @@
 
     function resolveDamage(target, isPureBlackjack) {
         if (target === 'PLAYER') {
-            if (kevlarActive) { logMsg("Kevlar Blocked Damage!"); kevlarActive = false; } 
-            else { 
-                let dmg = currentEnemy.type === 'bruiser' ? 2 : 1;
+            if (kevlarActive) { logMsg("Kevlar Blocked Damage!"); kevlarActive = false; }
+            else {
+                let dmg = currentEnemy.isBoss ? BOSS_DB[currentEnemy.type].damage : (currentEnemy.type === 'bruiser' ? 2 : 1);
                 player.hp -= dmg; 
                 logMsg(`Took ${dmg} damage!`);
             }
@@ -850,13 +995,22 @@
     function checkBattleState() {
         if (player.hp <= 0) { endGame(false); } 
         else if (currentEnemy.hp <= 0) {
-            logMsg("Thug knocked out!");
             currentEnemy.active = false;
             
-            let lootCash = Math.floor(Math.random() * 3) + 1; 
-            if (currentEnemy.type === 'hustler' || currentEnemy.type === 'bruiser') lootCash += 2; 
+            let lootCash;
+            if (currentEnemy.isBoss) {
+                lootCash = BOSS_DB[currentEnemy.type].cash;
+            } else {
+                lootCash = Math.floor(Math.random() * 3) + 1;
+                if (currentEnemy.type === 'hustler') lootCash += 2;
+                else if (currentEnemy.type === 'bruiser') lootCash += 3;
+                lootCash += Math.floor((currentFloor - 1) / 3);
+            }
             player.cash += lootCash;
-            logMsg(`Thug knocked out! Got $${lootCash}.`);
+            runStats.enemiesDefeated++;
+            runStats.cashEarned += lootCash;
+            let knockedTypeName = currentEnemy.isBoss ? BOSS_DB[currentEnemy.type].name : (currentEnemy.type.charAt(0).toUpperCase() + currentEnemy.type.slice(1));
+            logMsg(`${knockedTypeName} knocked out! Got $${lootCash}.`);
 
             if (player.perks.includes('vampire')) {
                 player.hp = Math.min(player.maxHp, player.hp + 1);
@@ -871,7 +1025,7 @@
     }
 
     btnNextHand.onclick = () => {
-        let typeName = currentEnemy.type.charAt(0).toUpperCase() + currentEnemy.type.slice(1);
+        let typeName = currentEnemy.isBoss ? BOSS_DB[currentEnemy.type].name : (currentEnemy.type.charAt(0).toUpperCase() + currentEnemy.type.slice(1));
         logMsg(`${typeName} [HP: ${currentEnemy.hp}/${currentEnemy.maxHp}]. Fight!`);
         startHand();
     };
@@ -891,24 +1045,60 @@
         checkRoomClear();
     }
 
+    /* --- AUDIO SYSTEM --- */
+    let audioCtx = null;
+    function getAudioCtx() {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        return audioCtx;
+    }
+    function playTone(type, freq, duration, gain = 0.25) {
+        try {
+            const ctx = getAudioCtx();
+            const osc = ctx.createOscillator();
+            const g = ctx.createGain();
+            osc.connect(g); g.connect(ctx.destination);
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, ctx.currentTime);
+            g.gain.setValueAtTime(gain, ctx.currentTime);
+            g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+            osc.start(ctx.currentTime);
+            osc.stop(ctx.currentTime + duration);
+        } catch(e) {}
+    }
+    const SFX = {
+        cardDeal:  () => playTone('square', 480, 0.06, 0.12),
+        winHand:   () => { playTone('sine', 523, 0.12); setTimeout(() => playTone('sine', 659, 0.12), 90); setTimeout(() => playTone('sine', 784, 0.2), 180); },
+        loseHand:  () => { playTone('sine', 523, 0.12); setTimeout(() => playTone('sine', 440, 0.12), 90); setTimeout(() => playTone('sine', 349, 0.25), 180); },
+        bust:      () => { playTone('sawtooth', 220, 0.08); setTimeout(() => playTone('sawtooth', 160, 0.3), 90); },
+        loot:      () => { [880, 1046, 1318].forEach((f, i) => setTimeout(() => playTone('sine', f, 0.12), i * 90)); },
+        stairs:    () => { [523, 659, 784, 1046].forEach((f, i) => setTimeout(() => playTone('sine', f, 0.12), i * 80)); }
+    };
+
     function endGame(victory) {
         gameState = victory ? 'WIN' : 'GAMEOVER';
-        clearSave(); 
-        
+        clearSave();
+
         const screen = document.getElementById('end-screen');
         const title = document.getElementById('end-title');
         const desc = document.getElementById('end-desc');
-        
+        const summary = document.getElementById('run-summary');
+
         screen.classList.remove('hidden');
         if (victory) {
             title.innerText = "You Survived!";
             title.style.color = "#4caf50";
-            desc.innerText = "You beat Street 10 and escaped!";
+            desc.innerText = "You cleared all 10 streets and escaped!";
         } else {
             title.innerText = "Game Over";
             title.style.color = "var(--accent)";
             desc.innerText = `You fell on Street ${currentFloor}.`;
         }
+
+        summary.innerHTML =
+            `🏙️ Streets Cleared: ${runStats.floorsCleared}<br>` +
+            `💀 Enemies Defeated: ${runStats.enemiesDefeated}<br>` +
+            `🎒 Perks Collected: ${runStats.perksCollected}<br>` +
+            `💵 Total Cash Earned: $${runStats.cashEarned}`;
     }
 
 </script>
